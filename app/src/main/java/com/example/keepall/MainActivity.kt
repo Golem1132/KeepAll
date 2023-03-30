@@ -1,5 +1,6 @@
 package com.example.keepall
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KeepAllTheme {
                 AppContent()
+                startActivity(Intent(this, CameraActivity::class.java))
             }
         }
     }

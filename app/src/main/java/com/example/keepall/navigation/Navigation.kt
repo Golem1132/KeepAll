@@ -4,9 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.keepall.screens.CanvasScreen
 import com.example.keepall.screens.HomeScreen
-import com.example.keepall.screens.NoteScreen
+import com.example.keepall.screens.notescreen.NoteScreen
 
 @Composable
 fun Navigation() {
@@ -17,7 +16,7 @@ fun Navigation() {
         HomeScreen(navController = navController)
         }
         composable(route = Screens.NoteScreen.route) {
-            NoteScreen()
+            NoteScreen(navController)
         }
     }
 }

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">KeepAll</string>
     <string name="title_activity_canvas">CanvasActivity</string>
+    <string name="title_activity_camera">CameraActivity</string>
 </resources>

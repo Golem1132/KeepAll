@@ -1,4 +1,4 @@
-package com.example.keepall.screens
+package com.example.keepall.screens.canvas
 
 import android.graphics.Bitmap
 import android.graphics.Paint
@@ -6,12 +6,8 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.keepall.model.Line
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 class CanvasViewModel: ViewModel() {
     private val _canvasStateFlow = MutableStateFlow<List<Line>>(listOf())

@@ -1,4 +1,4 @@
-package com.example.keepall.screens
+package com.example.keepall.screens.canvas
 
 import android.view.MotionEvent
 import androidx.compose.foundation.Canvas
@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.keepall.components.CanvasBottomBar
 import com.example.keepall.model.Line
 import com.example.keepall.navigationbar.CanvasNavigationBar
