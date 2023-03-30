@@ -26,7 +26,7 @@ fun CanvasNavigationBar(
     selectedColor: Color,
     onClick: (Color) -> Unit
 ) {
-    NavigationBar() {
+    NavigationBar {
         colorList.forEach {
             NavigationBarItem(selected = it.color == selectedColor,
                 onClick = { onClick(it.color) },

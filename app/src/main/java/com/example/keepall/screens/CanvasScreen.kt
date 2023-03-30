@@ -1,12 +1,8 @@
 package com.example.keepall.screens
 
-import android.graphics.Bitmap
 import android.view.MotionEvent
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -17,21 +13,18 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.keepall.components.CanvasBottomBar
 import com.example.keepall.model.Line
 import com.example.keepall.navigationbar.CanvasNavigationBar
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 @OptIn(ExperimentalComposeUiApi::class)
-@Preview
 @Composable
-fun CanvasScreen() {
+fun CanvasScreen(
+    onExit: () -> Unit
+) {
     val viewModel = viewModel<CanvasViewModel>()
     val scope = rememberCoroutineScope()
 
@@ -51,7 +44,7 @@ fun CanvasScreen() {
         mutableStateOf(0f)
     }
 
-    val xd = viewModel.canvasStateFlow.collectAsState()
+    val canvasBacklog = viewModel.canvasStateFlow.collectAsState()
     val tempPath = remember {
         mutableStateOf<Line?>(Line())
     }
@@ -61,29 +54,18 @@ fun CanvasScreen() {
             selectedColor = it
         }
     },
-    floatingActionButton = {
-        FloatingActionButton(onClick = {
-            scope.launch {
-                val bitmap = viewModel.saveCanvasToJpg(screenWidth,screenHeight)
-                val dir = File("${ctx.filesDir.absolutePath}/CANVAS")
-                if(!dir.exists())
-                    dir.mkdir()
-                val file = File(dir.absolutePath, "testCanva")
-                file.createNewFile()
-                val fos = FileOutputStream(file)
-                fos.use {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100,it)
-                }
-                fos.flush()
-                fos.close()
-            }.invokeOnCompletion {
-                //TODO Exit from canvas go to note
-                println("finished")
+        bottomBar = {
+            CanvasBottomBar(
+                scope = scope,
+                viewModel = viewModel,
+                screenHeight = screenHeight,
+                screenWidth = screenWidth,
+                ctx = ctx
+            ){
+                onExit()
             }
-        }) {
 
-        }
-    }) {
+        }) {
         Canvas(modifier = Modifier
             .fillMaxSize()
             .padding(it)
@@ -133,7 +115,7 @@ fun CanvasScreen() {
                 screenWidth = size.width
                 screenHeight = size.height
             }) {
-            xd.value.forEach { line ->
+            canvasBacklog.value.forEach { line ->
                 drawPath(
                     path = line.path,
                     color = line.color,

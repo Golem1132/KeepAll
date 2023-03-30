@@ -17,7 +17,7 @@ fun Navigation() {
         HomeScreen(navController = navController)
         }
         composable(route = Screens.NoteScreen.route) {
-            CanvasScreen()
+            NoteScreen()
         }
     }
 }
