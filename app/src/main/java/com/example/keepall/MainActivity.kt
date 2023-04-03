@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.keepall.components.Gallery
 import com.example.keepall.navigation.Navigation
 import com.example.keepall.ui.theme.KeepAllTheme
 
@@ -20,7 +21,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             KeepAllTheme {
                 AppContent()
-                startActivity(Intent(this, CameraActivity::class.java))
             }
         }
     }
