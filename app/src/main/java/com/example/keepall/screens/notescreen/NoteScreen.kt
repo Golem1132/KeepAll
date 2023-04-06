@@ -2,7 +2,6 @@ package com.example.keepall.screens.notescreen
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.os.Environment
 import android.provider.MediaStore
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,42 +21,46 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import androidx.core.net.toFile
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.keepall.CameraActivity
-import com.example.keepall.CanvasActivity
+import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
 import com.example.keepall.components.Gallery
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreen(navController: NavController) {
     val localContext = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(
+        confirmValueChange = { it != SheetValue.PartiallyExpanded }
+    )
     val viewModel = viewModel<NoteViewModel>()
-    val numbers = viewModel.filesList.collectAsState()
+    val files = viewModel.filesList.collectAsState()
 
-        LaunchedEffect(key1 = true) {
-            val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val projection =
-                arrayOf(MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
-            val cursor = localContext.contentResolver.query(
-                uri,
-                projection,
-                null,
-                null,
-                MediaStore.Images.Media.DEFAULT_SORT_ORDER
-            )
-            val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-            var absolutePath = ""
-            while (cursor.moveToNext()) {
-                absolutePath = cursor.getString(columnIndex)
-                viewModel.add(File(absolutePath))
-            }
-            cursor.close()
+    LaunchedEffect(key1 = true) {
+        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val projection =
+            arrayOf(MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+        val cursor = localContext.contentResolver.query(
+            uri,
+            projection,
+            null,
+            null,
+            MediaStore.Images.Media.DEFAULT_SORT_ORDER
+        )
+        val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+        var absolutePath = ""
+        while (cursor.moveToNext()) {
+            absolutePath = cursor.getString(columnIndex)
+            viewModel.add(File(absolutePath))
         }
+        cursor.close()
+    }
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -69,7 +72,7 @@ fun NoteScreen(navController: NavController) {
     }
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(bottomBar = {
-            NoteScreenBottomBar(launcher)
+            NoteScreenBottomBar(launcher, scope, sheetState)
         },
             topBar = {
                 Icon(imageVector = Icons.Default.Close,
@@ -98,12 +101,17 @@ fun NoteScreen(navController: NavController) {
             }
         }
     }
-    Gallery(numbers.value)
+    if (sheetState.isVisible)
+        Gallery(files.value, sheetState)
+    else Box {}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreenBottomBar(
-    launcher: ManagedActivityResultLauncher<Intent, ActivityResult>
+    launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
+    scope: CoroutineScope,
+    sheetState: SheetState
 ) {
     val localContext = LocalContext.current
     BottomAppBar(
@@ -126,7 +134,9 @@ fun NoteScreenBottomBar(
                 contentDescription = "Pick photos",
                 modifier = Modifier
                     .clickable {
-//                    launcher.launch(Intent(localContext, CanvasActivity::class.java))
+                        scope.launch {
+                            sheetState.show()
+                        }
                     }
                     .padding(horizontal = 16.dp, vertical = 12.dp))
         },

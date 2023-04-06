@@ -22,7 +22,7 @@
             android:label="@string/title_activity_camera"
             android:theme="@style/Theme.KeepAll" />
         <activity
-            android:name=".CanvasActivity"
+            android:name=".screens.canvas.CanvasActivity"
             android:exported="false"
             android:label="@string/title_activity_canvas"
             android:theme="@style/Theme.KeepAll" />

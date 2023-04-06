@@ -26,12 +26,15 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Gallery(files: List<File>) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Bottom
-    ) {
+fun Gallery(files: List<File>, state: SheetState) {
+    val scope = rememberCoroutineScope()
+    ModalBottomSheet(onDismissRequest = {
+        scope.launch {
+            state.hide()
+        }
+    }) {
         LazyVerticalGrid(
             modifier = Modifier
                 .fillMaxWidth()

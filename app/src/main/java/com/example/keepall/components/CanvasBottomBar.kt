@@ -21,11 +21,7 @@ import java.io.FileOutputStream
 
 @Composable
 fun CanvasBottomBar(
-    scope: CoroutineScope,
-    viewModel: CanvasViewModel,
-    screenHeight: Int,
-    screenWidth: Int,
-    ctx: Context,
+    onSave: () -> Unit,
     onExit: () -> Unit
 ) {
 
@@ -41,22 +37,7 @@ fun CanvasBottomBar(
         Icon(imageVector = Icons.Default.Check, contentDescription = "",
             modifier = Modifier.size(48.dp)
                 .clickable {
-                    scope.launch {
-                        val bitmap = viewModel.saveCanvasToJpg(screenWidth,screenHeight)
-                        val dir = File("${ctx.filesDir.absolutePath}/CANVAS")
-                        if(!dir.exists())
-                            dir.mkdir()
-                        val file = File(dir.absolutePath, "testCanva")
-                        file.createNewFile()
-                        val fos = FileOutputStream(file)
-                        fos.use {
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100,it)
-                        }
-                        fos.flush()
-                        fos.close()
-                    }.invokeOnCompletion {
-                        onExit()
-                    }
+                    onSave()
                 })
     }
 }
