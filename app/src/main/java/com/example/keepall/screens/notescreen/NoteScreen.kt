@@ -27,6 +27,7 @@ import com.example.keepall.CameraActivity
 import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
 import com.example.keepall.components.Gallery
+import com.example.keepall.constants.PHOTO_PATH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -64,7 +65,7 @@ fun NoteScreen(navController: NavController) {
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                println(result.data?.getStringExtra("PhotoPath"))
+                println(result.data?.getStringExtra(PHOTO_PATH))
 
             }
         }
