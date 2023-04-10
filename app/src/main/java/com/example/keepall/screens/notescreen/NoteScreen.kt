@@ -64,6 +64,7 @@ fun NoteScreen(navController: NavController) {
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
+                println(result.data?.getStringExtra("PhotoPath"))
 
             }
         }

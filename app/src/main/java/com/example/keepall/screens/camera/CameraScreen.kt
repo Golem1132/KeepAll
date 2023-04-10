@@ -3,6 +3,7 @@ package com.example.keepall.screens.camera
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup
@@ -20,9 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,7 +35,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.keepall.R
-import kotlinx.coroutines.CoroutineScope
+import com.example.keepall.uievents.CameraUiState
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -58,7 +57,13 @@ fun CameraScreen() {
     val cameraUiState = viewModel.cameraUiState.collectAsState()
     Scaffold(
         bottomBar = {
-            CameraBottomBar(imageCapture, mainExecutor, localContext, viewModel, cameraUiState.value)
+            CameraBottomBar(
+                imageCapture,
+                mainExecutor,
+                localContext,
+                viewModel,
+                cameraUiState.value
+            )
         },
     ) { paddingValues ->
         AndroidView(factory = { context ->
@@ -96,15 +101,22 @@ fun CameraScreen() {
             }
             previewView
         })
-        when(cameraUiState.value) {
+        when (cameraUiState.value) {
             is CameraUiState.Error -> {
-                Toast.makeText(localContext, (cameraUiState.value as CameraUiState.Error).msg, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    localContext,
+                    (cameraUiState.value as CameraUiState.Error).msg,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             is CameraUiState.Success -> {
-                PreviewTakenPhoto(padding = paddingValues, bitmap = (cameraUiState.value as CameraUiState.Success).bitmap)
+                PreviewTakenPhoto(
+                    padding = paddingValues,
+                    bitmap = (cameraUiState.value as CameraUiState.Success).bitmap
+                )
             }
             else -> {
-                Box{}
+                Box {}
             }
         }
     }
@@ -123,7 +135,7 @@ fun CameraBottomBar(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        when(state) {
+        when (state) {
             is CameraUiState.Success -> {
                 Image(
                     modifier = Modifier
@@ -139,7 +151,10 @@ fun CameraBottomBar(
                         .size(72.dp)
                         .clickable {
                             context as Activity
-                            context.setResult(RESULT_OK)
+                            val intent = Intent().also {
+                                it.putExtra("PhotoPath", state.path)
+                            }
+                            context.setResult(RESULT_OK, intent)
                             context.finish()
                         },
                     imageVector = Icons.Default.Check,
@@ -186,7 +201,7 @@ private fun saveImage(
     val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
     imageCapture.takePicture(outputOptions, executor, object : ImageCapture.OnImageSavedCallback {
         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-            viewModel.sendPhoto(outputFile)
+            viewModel.sendPhoto(outputFile.canonicalPath)
         }
 
         override fun onError(exception: ImageCaptureException) {

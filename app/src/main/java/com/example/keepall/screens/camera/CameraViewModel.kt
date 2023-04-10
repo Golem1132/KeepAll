@@ -1,9 +1,9 @@
 package com.example.keepall.screens.camera
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.keepall.uievents.CameraUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -21,9 +21,9 @@ class CameraViewModel: ViewModel() {
         }
     }
 
-    fun sendPhoto(file: File) {
+    fun sendPhoto(path: String) {
         viewModelScope.launch {
-            _cameraUiState.emit(CameraUiState.Success(BitmapFactory.decodeFile(file.canonicalPath)))
+            _cameraUiState.emit(CameraUiState.Success(BitmapFactory.decodeFile(path), path))
         }
     }
 
@@ -33,12 +33,4 @@ class CameraViewModel: ViewModel() {
         }
     }
 
-}
-
-sealed class CameraUiState {
-    data class Error(val msg: String): CameraUiState()
-
-    data class Success(val bitmap: Bitmap): CameraUiState()
-
-    data class Idle(val bitmap: Bitmap? = null): CameraUiState()
 }
