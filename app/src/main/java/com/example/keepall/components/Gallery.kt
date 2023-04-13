@@ -36,10 +36,6 @@ fun Gallery(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxSize(0.4f)
-                .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(topEndPercent = 10, topStartPercent = 10)
-                )
                 .padding(10.dp),
             columns = GridCells.Fixed(2)
         ) {

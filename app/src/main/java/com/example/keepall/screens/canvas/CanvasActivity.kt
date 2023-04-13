@@ -38,7 +38,6 @@ class CanvasActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             KeepAllTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -67,7 +66,9 @@ class CanvasActivity : ComponentActivity() {
                         mutableStateOf<Line?>(Line())
                     }
                     var path = Line()
-                    Scaffold(topBar = {
+                    Scaffold(
+                        containerColor = Color.White,
+                        topBar = {
                         CanvasNavigationBar(selectedColor) {
                             selectedColor = it
                         }
