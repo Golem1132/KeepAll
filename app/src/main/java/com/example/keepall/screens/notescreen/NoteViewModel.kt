@@ -11,9 +11,11 @@ class NoteViewModel : ViewModel() {
     private val _filesList = MutableStateFlow<List<File>>(emptyList())
     val filesList = _filesList
 
+    val checkedPhotos = ArrayList<String>()
 
 
-    fun add(file: File) {
+
+    fun fetchFile(file: File) {
         viewModelScope.launch {
             flow<File> {
                 emit(file)
@@ -24,6 +26,18 @@ class NoteViewModel : ViewModel() {
             }
         }
 
+    }
+
+    fun addFile(path: String) {
+        when(checkedPhotos.contains(path)) {
+            true -> {
+                checkedPhotos.remove(path)
+            }
+            false -> {
+                checkedPhotos.add(path)
+            }
+        }
+        println(checkedPhotos)
     }
 
 }

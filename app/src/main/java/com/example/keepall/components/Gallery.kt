@@ -1,34 +1,31 @@
 package com.example.keepall.components
 
 import android.graphics.BitmapFactory
-import android.os.Environment
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
-import androidx.core.net.toFile
 import kotlinx.coroutines.launch
 import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Gallery(files: List<File>, state: SheetState) {
+fun Gallery(
+    files: List<File>,
+    state: SheetState,
+    addFile: (String) -> Unit,
+    checkedPhotos: ArrayList<String>
+) {
     val scope = rememberCoroutineScope()
     ModalBottomSheet(onDismissRequest = {
         scope.launch {
@@ -48,7 +45,12 @@ fun Gallery(files: List<File>, state: SheetState) {
         ) {
             items(files) {
                 val img = BitmapFactory.decodeFile(it.canonicalPath)
-                Image(bitmap = img.asImageBitmap(), contentDescription = "")
+                CheckableImage(
+                    path = it.canonicalPath,
+                    addFile,
+                    img = img.asImageBitmap(),
+                    checkedPhotos.contains(it.canonicalPath)
+                )
             }
 
         }

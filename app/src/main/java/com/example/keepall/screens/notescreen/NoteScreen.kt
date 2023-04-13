@@ -58,7 +58,7 @@ fun NoteScreen(navController: NavController) {
         var absolutePath = ""
         while (cursor.moveToNext()) {
             absolutePath = cursor.getString(columnIndex)
-            viewModel.add(File(absolutePath))
+            viewModel.fetchFile(File(absolutePath))
         }
         cursor.close()
     }
@@ -104,7 +104,7 @@ fun NoteScreen(navController: NavController) {
         }
     }
     if (sheetState.isVisible)
-        Gallery(files.value, sheetState)
+        Gallery(files.value, sheetState, viewModel::addFile, viewModel.checkedPhotos)
     else Box {}
 }
 
