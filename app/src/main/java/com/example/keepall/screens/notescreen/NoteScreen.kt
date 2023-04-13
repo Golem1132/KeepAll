@@ -55,7 +55,7 @@ fun NoteScreen(navController: NavController) {
             MediaStore.Images.Media.DEFAULT_SORT_ORDER
         )
         val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-        var absolutePath = ""
+        var absolutePath: String
         while (cursor.moveToNext()) {
             absolutePath = cursor.getString(columnIndex)
             viewModel.fetchFile(File(absolutePath))
@@ -91,7 +91,7 @@ fun NoteScreen(navController: NavController) {
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                TextField(
+                OutlinedTextField(
                     value = textState.value, onValueChange = { newText ->
                         textState.value = newText
                     },
