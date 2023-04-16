@@ -14,6 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -32,23 +33,34 @@ fun Gallery(
             state.hide()
         }
     }) {
-        LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxSize(0.4f)
-                .padding(10.dp),
-            columns = GridCells.Fixed(2)
-        ) {
-            items(files) {
-                val img = BitmapFactory.decodeFile(it.canonicalPath)
-                CheckableImage(
-                    path = it.canonicalPath,
-                    addFile,
-                    img = img.asImageBitmap(),
-                    checkedPhotos.contains(it.canonicalPath)
-                )
+        Box() {
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxSize(0.4f)
+                    .padding(10.dp)
+                    .zIndex(1f),
+                columns = GridCells.Fixed(2)
+            ) {
+                items(
+                    with(files) {
+                        if (size > 1)
+                            reversed()
+                        else this
+                    }
+                ) {
+                    val img =
+                        BitmapFactory.decodeFile(it.canonicalPath, BitmapFactory.Options().apply {
+                            inSampleSize = 4
+                        })
+                    CheckableImage(
+                        path = it.canonicalPath,
+                        addFile,
+                        img = img.asImageBitmap(),
+                        checkedPhotos.contains(it.canonicalPath)
+                    )
+                }
             }
-
         }
     }
 }

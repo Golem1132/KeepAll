@@ -52,7 +52,7 @@ fun NoteScreen(navController: NavController) {
             projection,
             null,
             null,
-            MediaStore.Images.Media.DEFAULT_SORT_ORDER
+            MediaStore.Images.Media.DATE_ADDED
         )
         val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
         var absolutePath: String
