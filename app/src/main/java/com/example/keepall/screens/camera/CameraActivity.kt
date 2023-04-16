@@ -1,4 +1,4 @@
-package com.example.keepall
+package com.example.keepall.screens.camera
 
 import android.os.Bundle
 import android.util.Log

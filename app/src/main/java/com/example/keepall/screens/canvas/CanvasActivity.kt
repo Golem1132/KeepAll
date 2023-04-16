@@ -1,5 +1,6 @@
 package com.example.keepall.screens.canvas
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.MotionEvent
@@ -23,9 +24,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.keepall.components.CanvasBottomBar
+import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.model.Line
 import com.example.keepall.navigationbar.CanvasNavigationBar
 import com.example.keepall.ui.theme.KeepAllTheme
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -33,7 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CanvasActivity : ComponentActivity() {
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -76,13 +80,13 @@ class CanvasActivity : ComponentActivity() {
                         bottomBar = {
                             CanvasBottomBar(
                                 onSave = {
-                                    scope.launch {
+                                    val job = scope.async {
                                         val bitmap = viewModel.saveCanvasToJpg(screenWidth,screenHeight)
                                         val dir = File("${ctx.filesDir.absolutePath}/CANVAS")
                                         if(!dir.exists())
                                             dir.mkdir()
                                         val date = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
-                                        val file = File(dir.absolutePath, "$date\\_canvas.jpeg")
+                                        val file = File(dir.absolutePath, "${date}_canvas.jpeg")
                                         file.createNewFile()
                                         val fos = FileOutputStream(file)
                                         fos.use {
@@ -90,8 +94,13 @@ class CanvasActivity : ComponentActivity() {
                                         }
                                         fos.flush()
                                         fos.close()
-                                    }.invokeOnCompletion {
-                                        setResult(RESULT_OK)
+                                        file.canonicalPath
+                                    }
+                                    job.invokeOnCompletion {
+                                        val intent = Intent().apply {
+                                            putExtra(CANVAS_PATH, job.getCompleted())
+                                        }
+                                        setResult(RESULT_OK, intent)
                                         finish()
                                     }
                                 }

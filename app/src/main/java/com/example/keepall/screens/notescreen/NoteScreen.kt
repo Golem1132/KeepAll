@@ -3,9 +3,7 @@ package com.example.keepall.screens.notescreen
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.provider.MediaStore
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,12 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.keepall.CameraActivity
+import com.example.keepall.screens.camera.CameraActivity
 import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
 import com.example.keepall.components.Gallery
+import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.constants.PHOTO_PATH
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -62,11 +60,19 @@ fun NoteScreen(navController: NavController) {
         }
         cursor.close()
     }
-    val launcher =
+
+    val cameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                println(result.data?.getStringExtra(PHOTO_PATH))
-
+                viewModel.photoFilePath = result.data?.getStringExtra(PHOTO_PATH)
+                println(viewModel.photoFilePath)
+            }
+        }
+    val canvasLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                viewModel.canvasFilePath = result.data?.getStringExtra(CANVAS_PATH)
+                println(viewModel.canvasFilePath)
             }
         }
     val textState = remember {
@@ -74,7 +80,48 @@ fun NoteScreen(navController: NavController) {
     }
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(bottomBar = {
-            NoteScreenBottomBar(launcher, scope, sheetState)
+            BottomAppBar(
+                actions = {
+                    Icon(painter = painterResource(id = R.drawable.baseline_palette_24),
+                        contentDescription = "Add your painting",
+                        modifier = Modifier
+                            .clickable {
+                                canvasLauncher.launch(
+                                    Intent(
+                                        localContext,
+                                        CanvasActivity::class.java
+                                    )
+                                )
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp))
+                    Icon(painter = painterResource(id = R.drawable.baseline_photo_camera_24),
+                        contentDescription = "Take photo",
+                        modifier = Modifier
+                            .clickable {
+                                cameraLauncher.launch(
+                                    Intent(
+                                        localContext,
+                                        CameraActivity::class.java
+                                    )
+                                )
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp))
+                    Icon(painter = painterResource(id = R.drawable.baseline_add_to_photos_24),
+                        contentDescription = "Pick photos",
+                        modifier = Modifier
+                            .clickable {
+                                scope.launch {
+                                    sheetState.show()
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp))
+                },
+                floatingActionButton = {
+                    FloatingActionButton(onClick = { /*TODO*/ }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
+                    }
+                }
+            )
         },
             topBar = {
                 Icon(imageVector = Icons.Default.Close,
@@ -106,46 +153,4 @@ fun NoteScreen(navController: NavController) {
     if (sheetState.isVisible)
         Gallery(files.value, sheetState, viewModel::addFile, viewModel.checkedPhotos)
     else Box {}
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NoteScreenBottomBar(
-    launcher: ManagedActivityResultLauncher<Intent, ActivityResult>,
-    scope: CoroutineScope,
-    sheetState: SheetState
-) {
-    val localContext = LocalContext.current
-    BottomAppBar(
-        actions = {
-            Icon(painter = painterResource(id = R.drawable.baseline_palette_24),
-                contentDescription = "Add your painting",
-                modifier = Modifier
-                    .clickable {
-                        launcher.launch(Intent(localContext, CanvasActivity::class.java))
-                    }
-                    .padding(horizontal = 16.dp, vertical = 12.dp))
-            Icon(painter = painterResource(id = R.drawable.baseline_photo_camera_24),
-                contentDescription = "Take photo",
-                modifier = Modifier
-                    .clickable {
-                        launcher.launch(Intent(localContext, CameraActivity::class.java))
-                    }
-                    .padding(horizontal = 16.dp, vertical = 12.dp))
-            Icon(painter = painterResource(id = R.drawable.baseline_add_to_photos_24),
-                contentDescription = "Pick photos",
-                modifier = Modifier
-                    .clickable {
-                        scope.launch {
-                            sheetState.show()
-                        }
-                    }
-                    .padding(horizontal = 16.dp, vertical = 12.dp))
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /*TODO*/ }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
-            }
-        }
-    )
 }

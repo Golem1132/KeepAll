@@ -11,6 +11,9 @@ class NoteViewModel : ViewModel() {
     private val _filesList = MutableStateFlow<List<File>>(emptyList())
     val filesList = _filesList
 
+    var canvasFilePath: String? = ""
+    var photoFilePath: String? = ""
+
     val checkedPhotos = ArrayList<String>()
 
 
