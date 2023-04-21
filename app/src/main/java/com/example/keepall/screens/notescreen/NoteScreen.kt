@@ -2,7 +2,6 @@ package com.example.keepall.screens.notescreen
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -19,48 +18,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.keepall.screens.camera.CameraActivity
 import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
-import com.example.keepall.components.Gallery
 import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.constants.PHOTO_PATH
-import kotlinx.coroutines.launch
-import java.io.File
+import com.example.keepall.data.Note
+import com.example.keepall.screens.gallery.GalleryActivity
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteScreen(navController: NavController) {
     val localContext = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(
-        confirmValueChange = { it != SheetValue.PartiallyExpanded }
-    )
-    val viewModel = viewModel<NoteViewModel>()
-    val files = viewModel.filesList.collectAsState()
-
-    LaunchedEffect(key1 = true) {
-        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection =
-            arrayOf(MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
-        val cursor = localContext.contentResolver.query(
-            uri,
-            projection,
-            null,
-            null,
-            MediaStore.Images.Media.DATE_ADDED
-        )
-        val columnIndex = cursor!!.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-        var absolutePath: String
-        while (cursor.moveToNext()) {
-            absolutePath = cursor.getString(columnIndex)
-            viewModel.fetchFile(File(absolutePath))
-        }
-        cursor.close()
-    }
-
+    val viewModel = hiltViewModel<NoteViewModel>()
     val cameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
@@ -110,14 +81,23 @@ fun NoteScreen(navController: NavController) {
                         contentDescription = "Pick photos",
                         modifier = Modifier
                             .clickable {
-                                scope.launch {
-                                    sheetState.show()
-                                }
+                                localContext.startActivity(
+                                    Intent(
+                                        localContext,
+                                        GalleryActivity::class.java
+                                    )
+                                )
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp))
                 },
                 floatingActionButton = {
-                    FloatingActionButton(onClick = { /*TODO*/ }) {
+                    FloatingActionButton(onClick = {
+                        Note(
+                            textContent = textState.value,
+                            photo = viewModel.photoFilePath,
+                            canvas = viewModel.canvasFilePath
+                        )
+                    }) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
                     }
                 }
@@ -150,7 +130,4 @@ fun NoteScreen(navController: NavController) {
             }
         }
     }
-    if (sheetState.isVisible)
-        Gallery(files.value, sheetState, viewModel::addFile, viewModel.checkedPhotos)
-    else Box {}
 }
