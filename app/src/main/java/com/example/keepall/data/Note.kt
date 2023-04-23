@@ -9,5 +9,6 @@ data class Note(
     val id: Int = 0,
     val textContent: String,
     val photo: String?,
-    val canvas: String?
+    val canvas: String?,
+    val devicePhotos: String?
 )

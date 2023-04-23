@@ -26,7 +26,6 @@ import com.example.keepall.R
 import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.constants.PHOTO_PATH
 import com.example.keepall.constants.PICKED_PHOTOS
-import com.example.keepall.data.Note
 import com.example.keepall.screens.gallery.GalleryActivity
 
 @Composable
@@ -98,11 +97,8 @@ fun NoteScreen(navController: NavController) {
                 },
                 floatingActionButton = {
                     FloatingActionButton(onClick = {
-                        Note(
-                            textContent = textState.value,
-                            photo = viewModel.photoFilePath,
-                            canvas = viewModel.canvasFilePath
-                        )
+                        viewModel.addNewNote(textState.value)
+                        navController.popBackStack()
                     }) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
                     }
