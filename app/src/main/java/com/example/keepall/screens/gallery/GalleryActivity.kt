@@ -1,6 +1,7 @@
 package com.example.keepall.screens.gallery
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -26,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.keepall.constants.PICKED_PHOTOS
 import com.example.keepall.ui.theme.KeepAllTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +63,7 @@ class GalleryActivity : ComponentActivity() {
                             GalleryTopBar(
                                 clearItems = viewModel::clearCheckedImages,
                                 onNavIconClick = {
+                                    setResult(RESULT_CANCELED)
                                     finish()
                                 }
                             )
@@ -73,6 +76,9 @@ class GalleryActivity : ComponentActivity() {
                                 else galleryState.value = GALLERY_PICKER_MODE
                             },
                             onFabClick = {
+                                println(checkedImages.value)
+                                val intent = Intent().putExtra(PICKED_PHOTOS, checkedImages.value.toTypedArray())
+                                setResult(RESULT_OK, intent)
                                 finish()
                             }
                         ) }

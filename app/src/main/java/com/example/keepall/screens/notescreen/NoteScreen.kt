@@ -25,6 +25,7 @@ import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
 import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.constants.PHOTO_PATH
+import com.example.keepall.constants.PICKED_PHOTOS
 import com.example.keepall.data.Note
 import com.example.keepall.screens.gallery.GalleryActivity
 
@@ -36,14 +37,19 @@ fun NoteScreen(navController: NavController) {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 viewModel.photoFilePath = result.data?.getStringExtra(PHOTO_PATH)
-                println(viewModel.photoFilePath)
             }
         }
     val canvasLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 viewModel.canvasFilePath = result.data?.getStringExtra(CANVAS_PATH)
-                println(viewModel.canvasFilePath)
+            }
+        }
+
+    val filePickerLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                viewModel.pickedPhotos = result.data?.getStringArrayExtra(PICKED_PHOTOS)
             }
         }
     val textState = remember {
@@ -81,7 +87,7 @@ fun NoteScreen(navController: NavController) {
                         contentDescription = "Pick photos",
                         modifier = Modifier
                             .clickable {
-                                localContext.startActivity(
+                                filePickerLauncher.launch(
                                     Intent(
                                         localContext,
                                         GalleryActivity::class.java

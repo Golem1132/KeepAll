@@ -15,6 +15,7 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
 
     var canvasFilePath: String? = ""
     var photoFilePath: String? = ""
+    var pickedPhotos: Array<String>? = emptyArray()
 
 
 
