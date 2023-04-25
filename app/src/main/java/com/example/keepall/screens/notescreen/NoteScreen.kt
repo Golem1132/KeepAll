@@ -1,7 +1,9 @@
 package com.example.keepall.screens.notescreen
 
+import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -51,6 +53,30 @@ fun NoteScreen(navController: NavController) {
                 viewModel.pickedPhotos = result.data?.getStringArrayExtra(PICKED_PHOTOS)
             }
         }
+
+    val filePermissionLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                filePickerLauncher.launch(
+                    Intent(
+                        localContext,
+                        GalleryActivity::class.java
+                    )
+                )
+            }
+        }
+
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                cameraLauncher.launch(
+                    Intent(
+                        localContext,
+                        CameraActivity::class.java
+                    )
+                )
+            }
+        }
     val textState = remember {
         mutableStateOf("")
     }
@@ -74,11 +100,8 @@ fun NoteScreen(navController: NavController) {
                         contentDescription = "Take photo",
                         modifier = Modifier
                             .clickable {
-                                cameraLauncher.launch(
-                                    Intent(
-                                        localContext,
-                                        CameraActivity::class.java
-                                    )
+                                cameraPermissionLauncher.launch(
+                                    Manifest.permission.CAMERA
                                 )
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp))
@@ -86,12 +109,10 @@ fun NoteScreen(navController: NavController) {
                         contentDescription = "Pick photos",
                         modifier = Modifier
                             .clickable {
-                                filePickerLauncher.launch(
-                                    Intent(
-                                        localContext,
-                                        GalleryActivity::class.java
-                                    )
-                                )
+                                if(Build.VERSION.SDK_INT > 32)
+                                    filePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                    else
+                                    filePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp))
                 },
