@@ -7,11 +7,10 @@ import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -26,11 +25,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.keepall.components.CanvasBottomBar
 import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.model.Line
-import com.example.keepall.navigationbar.CanvasNavigationBar
+import com.example.keepall.navigationbar.CanvasColorsRail
 import com.example.keepall.ui.theme.KeepAllTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -48,6 +46,15 @@ class CanvasActivity : ComponentActivity() {
                 ) {
                     val viewModel = viewModel<CanvasViewModel>()
                     val scope = rememberCoroutineScope()
+                    val isColorRailOpened = remember {
+                        mutableStateOf(false)
+                    }
+                    val isThicknessBarOpened = remember {
+                        mutableStateOf(false)
+                    }
+                    val thickness = remember {
+                        mutableStateOf(0f)
+                    }
 
                     var screenHeight = 0
                     var screenWidth = 0
@@ -73,24 +80,36 @@ class CanvasActivity : ComponentActivity() {
                     Scaffold(
                         containerColor = Color.White,
                         topBar = {
-                        CanvasNavigationBar(selectedColor) {
-                            selectedColor = it
-                        }
-                    },
+                            if (isColorRailOpened.value)
+                                CanvasColorsRail(selectedColor) {
+                                    selectedColor = it
+                                }
+                            if (isThicknessBarOpened.value)
+                                Slider(modifier = Modifier.padding(horizontal = 20.dp),
+                                    valueRange = 1f.rangeTo(50f),
+                                    steps = 50,
+                                    value = thickness.value, onValueChange = {
+                                        thickness.value = it
+                                    })
+                        },
                         bottomBar = {
                             CanvasBottomBar(
                                 onSave = {
                                     val job = scope.async {
-                                        val bitmap = viewModel.saveCanvasToJpg(screenWidth,screenHeight)
+                                        val bitmap =
+                                            viewModel.saveCanvasToJpg(screenWidth, screenHeight)
                                         val dir = File("${ctx.filesDir.absolutePath}/CANVAS")
-                                        if(!dir.exists())
+                                        if (!dir.exists())
                                             dir.mkdir()
-                                        val date = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(Date())
+                                        val date = SimpleDateFormat(
+                                            "yyyyMMddHHmmss",
+                                            Locale.getDefault()
+                                        ).format(Date())
                                         val file = File(dir.absolutePath, "${date}_canvas.jpeg")
                                         file.createNewFile()
                                         val fos = FileOutputStream(file)
                                         fos.use {
-                                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100,it)
+                                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
                                         }
                                         fos.flush()
                                         fos.close()
@@ -103,18 +122,30 @@ class CanvasActivity : ComponentActivity() {
                                         setResult(RESULT_OK, intent)
                                         finish()
                                     }
+                                },
+                                onExit = {
+                                    setResult(RESULT_CANCELED)
+                                    finish()
+                                },
+                                onThicknessClicked = {
+                                    isColorRailOpened.value = false
+                                    isThicknessBarOpened.value = !isThicknessBarOpened.value
+                                },
+                                onColorsClicked = {
+                                    isColorRailOpened.value = !isColorRailOpened.value
+                                    isThicknessBarOpened.value = false
                                 }
-                            ){
-                                setResult(RESULT_CANCELED)
-                                finish()
-                            }
+                            )
 
                         }) {
                         Canvas(modifier = Modifier
                             .fillMaxSize()
-                            .padding(it)
+                            .padding(
+                                PaddingValues(
+                                    bottom = it.calculateBottomPadding()
+                                )
+                            )
                             .onSizeChanged { canvas ->
-                                println("${canvas.height}, ${canvas.width}")
                                 screenHeight = canvas.height
                                 screenWidth = canvas.width
                             }
@@ -123,8 +154,10 @@ class CanvasActivity : ComponentActivity() {
                                     MotionEvent.ACTION_DOWN -> {
                                         path.path.moveTo(event.x, event.y)
                                         path.color = selectedColor
+                                        path.thickness = thickness.value
                                         tempPath.value?.path?.moveTo(event.x, event.y)
                                         tempPath.value?.color = selectedColor
+                                        tempPath.value?.thickness = thickness.value
                                         lastTouchX = event.x
                                         lastTouchY = event.y
                                     }
@@ -145,7 +178,8 @@ class CanvasActivity : ComponentActivity() {
                                         viewModel.addNewLine(
                                             Line(
                                                 path.path,
-                                                path.color
+                                                path.color,
+                                                path.thickness
                                             )
                                         )
                                         path = Line()
@@ -165,7 +199,7 @@ class CanvasActivity : ComponentActivity() {
                                     path = line.path,
                                     color = line.color,
                                     style = Stroke(
-                                        width = 4.dp.toPx()
+                                        width = line.thickness.dp.toPx()
                                     )
                                 )
                             }
@@ -174,7 +208,7 @@ class CanvasActivity : ComponentActivity() {
                                     path = path.value?.path ?: Path(),
                                     color = path.value?.color ?: Color.Black,
                                     style = Stroke(
-                                        width = 4.dp.toPx()
+                                        width = path.value?.thickness?.dp?.toPx() ?: 1.dp.toPx()
                                     )
                                 )
                             }
@@ -186,4 +220,3 @@ class CanvasActivity : ComponentActivity() {
         }
     }
 }
-

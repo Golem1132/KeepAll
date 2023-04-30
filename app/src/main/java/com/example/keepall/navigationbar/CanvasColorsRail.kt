@@ -3,9 +3,7 @@ package com.example.keepall.navigationbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,16 +20,17 @@ private val colorList = listOf(
 
 
 @Composable
-fun CanvasNavigationBar(
+fun CanvasColorsRail(
     selectedColor: Color,
     onClick: (Color) -> Unit
 ) {
-    NavigationBar {
+    NavigationRail() {
         colorList.forEach {
-            NavigationBarItem(selected = it.color == selectedColor,
+            NavigationRailItem(selected = it.color == selectedColor,
                 onClick = { onClick(it.color) },
             icon = {
-                   Box(modifier = Modifier.size(24.dp)
+                   Box(modifier = Modifier
+                       .size(24.dp)
                        .background(color = it.color))
             },
             label = {

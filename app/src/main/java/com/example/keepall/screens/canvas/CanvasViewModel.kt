@@ -10,6 +10,7 @@ import com.example.keepall.model.Line
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class CanvasViewModel: ViewModel() {
+
     private val _canvasStateFlow = MutableStateFlow<List<Line>>(listOf())
     val canvasStateFlow = _canvasStateFlow
 
