@@ -30,7 +30,7 @@ class CanvasViewModel: ViewModel() {
                 val paint = Paint(Paint.ANTI_ALIAS_FLAG)
                 paint.style = Paint.Style.STROKE
                 paint.color = it.color.hashCode()
-                paint.strokeWidth = 4f
+                paint.strokeWidth = it.thickness
                 this.drawPath(
                     it.path.asAndroidPath(),
                     paint
