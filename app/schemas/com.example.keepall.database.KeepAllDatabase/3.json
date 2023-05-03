@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "c074e7fbc5e0756f8e3bb81458cb9288",
+    "version": 3,
+    "identityHash": "3f71a77a98c485f41ad9011d72ef1053",
     "entities": [
       {
         "tableName": "notes_tbl",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `textContent` TEXT NOT NULL, `canvas` TEXT NOT NULL, `photos` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `textContent` TEXT NOT NULL, `canvas` TEXT, `photos` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -24,13 +24,13 @@
             "fieldPath": "canvas",
             "columnName": "canvas",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "photos",
             "columnName": "photos",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -46,7 +46,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c074e7fbc5e0756f8e3bb81458cb9288')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3f71a77a98c485f41ad9011d72ef1053')"
     ]
   }
 }

@@ -2,9 +2,7 @@ package com.example.keepall.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.keepall.database.KeepAllDatabase
-import com.example.keepall.database.Migration1_2
-import com.example.keepall.database.NoteDao
+import com.example.keepall.database.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,6 +27,7 @@ class KeepAllModule {
             KeepAllDatabase::class.java,
             "KeepAllDb"
         ).addMigrations(
-            Migration1_2(startVersion = 1, endVersion = 2)
-        ).build()
+            migration_1_2, migration_2_3, migration_3_4
+        ).fallbackToDestructiveMigration()
+            .build()
 }
