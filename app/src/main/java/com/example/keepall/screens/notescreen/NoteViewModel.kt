@@ -47,9 +47,7 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
             flow {
                 emit(photosPath)
             }.collect { paths ->
-                paths.forEach {
-                    _pickedPhotos.value = pickedPhotos.value.plus(it)
-                }
+                    _pickedPhotos.value = paths
             }
         }
     }

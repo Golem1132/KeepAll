@@ -73,12 +73,13 @@ fun NoteScreen(navController: NavController) {
     val filePermissionLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                filePickerLauncher.launch(
-                    Intent(
-                        localContext,
-                        GalleryActivity::class.java
-                    )
-                )
+                val intent = Intent(
+                    localContext,
+                    GalleryActivity::class.java
+                ).also {
+                    it.putExtra(PICKED_PHOTOS, pickedPhotos.value)
+                }
+                filePickerLauncher.launch(intent)
             }
         }
 

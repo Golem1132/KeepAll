@@ -27,12 +27,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.keepall.constants.PHOTOS_FOLDER
+import com.example.keepall.constants.PHOTO_EXTENSION
 import com.example.keepall.constants.PICKED_PHOTOS
 import com.example.keepall.ui.theme.KeepAllTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.math.roundToInt
 
 private const val GALLERY_PICKER_MODE = 1
@@ -46,6 +49,9 @@ class GalleryActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.Default) {
             fetchImages(this@GalleryActivity) { path ->
                 viewModel.addFetchedImage(path)
+            }
+            intent.extras?.getStringArray(PICKED_PHOTOS)?.forEach {
+                viewModel.putImageToCheckedList(it)
             }
         }
         setContent {
@@ -68,20 +74,25 @@ class GalleryActivity : ComponentActivity() {
                                 }
                             )
                         },
-                        bottomBar = { GalleryBottomBar(
-                            currentMode = galleryState.value,
-                            onActionClick = {
-                                if(galleryState.value == GALLERY_PICKER_MODE)
-                                    galleryState.value = GALLERY_VIEWER_MODE
-                                else galleryState.value = GALLERY_PICKER_MODE
-                            },
-                            onFabClick = {
-                                println(checkedImages.value)
-                                val intent = Intent().putExtra(PICKED_PHOTOS, checkedImages.value.toTypedArray())
-                                setResult(RESULT_OK, intent)
-                                finish()
-                            }
-                        ) }
+                        bottomBar = {
+                            GalleryBottomBar(
+                                currentMode = galleryState.value,
+                                onActionClick = {
+                                    if (galleryState.value == GALLERY_PICKER_MODE)
+                                        galleryState.value = GALLERY_VIEWER_MODE
+                                    else galleryState.value = GALLERY_PICKER_MODE
+                                },
+                                onFabClick = {
+                                    println(checkedImages.value)
+                                    val intent = Intent().putExtra(
+                                        PICKED_PHOTOS,
+                                        checkedImages.value.toTypedArray()
+                                    )
+                                    setResult(RESULT_OK, intent)
+                                    finish()
+                                }
+                            )
+                        }
                     ) { paddingValues ->
                         LazyVerticalGrid(
                             contentPadding = paddingValues,
@@ -157,10 +168,15 @@ fun SlowLoadingImage(
 
     LaunchedEffect(key1 = true) {
         img.value = withContext(Dispatchers.Default) {
-            Bitmap.createScaledBitmap(
-                BitmapFactory.decodeFile(path),
-                size, size, true
-            )
+            try {
+                Bitmap.createScaledBitmap(
+                    BitmapFactory.decodeFile(path),
+                    size, size, true
+                )
+            } catch (e: NullPointerException) {
+                println(path)
+                null
+            }
         }
     }
     Box(
@@ -198,10 +214,15 @@ fun CheckableImage(
 
     LaunchedEffect(key1 = true) {
         img.value = withContext(Dispatchers.Default) {
-            Bitmap.createScaledBitmap(
-                BitmapFactory.decodeFile(path),
-                size, size, true
-            )
+            try {
+                Bitmap.createScaledBitmap(
+                    BitmapFactory.decodeFile(path),
+                    size, size, true
+                )
+            } catch (e: NullPointerException) {
+                println(path)
+                null
+            }
         }
     }
     Box(
@@ -282,5 +303,9 @@ fun fetchImages(context: Context, doWhenFound: (String) -> Unit) {
         doWhenFound(cursor.getString(columnIndex))
     }
     cursor.close()
+    File("${context.filesDir}/$PHOTOS_FOLDER").listFiles()?.forEach {
+        if (it.extension == PHOTO_EXTENSION && it.length() > 0L) {
+            doWhenFound(it.canonicalPath)
+        }
+    }
 }
-
