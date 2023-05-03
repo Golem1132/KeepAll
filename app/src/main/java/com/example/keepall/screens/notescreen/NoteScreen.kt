@@ -6,7 +6,9 @@ import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,19 +27,26 @@ import androidx.navigation.NavController
 import com.example.keepall.screens.camera.CameraActivity
 import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.R
+import com.example.keepall.sidesheet.SideSheetValue
+import com.example.keepall.components.IconWithBadge
+import com.example.keepall.sidesheet.SideSheet
 import com.example.keepall.constants.CANVAS_PATH
 import com.example.keepall.constants.PHOTO_PATH
 import com.example.keepall.constants.PICKED_PHOTOS
+import com.example.keepall.sidesheet.rememberSideSheetState
 import com.example.keepall.screens.gallery.GalleryActivity
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteScreen(navController: NavController) {
     val localContext = LocalContext.current
     val viewModel = hiltViewModel<NoteViewModel>()
+    val sideSheetState = rememberSideSheetState(initValue = SideSheetValue.CLOSED)
     val cameraLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                viewModel.photoFilePath = result.data?.getStringExtra(PHOTO_PATH)
+                if (result.data?.getStringExtra(PHOTO_PATH) != null)
+                    viewModel.addNewPhoto(result.data!!.getStringExtra(PHOTO_PATH)!!)
             }
         }
     val canvasLauncher =
@@ -50,7 +59,8 @@ fun NoteScreen(navController: NavController) {
     val filePickerLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                viewModel.pickedPhotos = result.data?.getStringArrayExtra(PICKED_PHOTOS)
+                if (result.data?.getStringExtra(PHOTO_PATH) != null)
+                    viewModel.addNewPhoto(result.data!!.getStringExtra(PICKED_PHOTOS)!!)
             }
         }
 
@@ -84,37 +94,45 @@ fun NoteScreen(navController: NavController) {
         Scaffold(bottomBar = {
             BottomAppBar(
                 actions = {
-                    Icon(painter = painterResource(id = R.drawable.baseline_palette_24),
+                    IconWithBadge(icon = painterResource(id = R.drawable.baseline_palette_24),
                         contentDescription = "Add your painting",
                         modifier = Modifier
-                            .clickable {
+                            .combinedClickable(onClick = {
                                 canvasLauncher.launch(
                                     Intent(
                                         localContext,
                                         CanvasActivity::class.java
                                     )
                                 )
-                            }
-                            .padding(horizontal = 16.dp, vertical = 12.dp))
-                    Icon(painter = painterResource(id = R.drawable.baseline_photo_camera_24),
+                            },
+                            onLongClick = {
+                                println("SHOW PAINTING")
+                            }), count = 0
+                    )
+                    IconWithBadge(icon = painterResource(id = R.drawable.baseline_photo_camera_24),
                         contentDescription = "Take photo",
                         modifier = Modifier
                             .clickable {
                                 cameraPermissionLauncher.launch(
                                     Manifest.permission.CAMERA
                                 )
-                            }
-                            .padding(horizontal = 16.dp, vertical = 12.dp))
-                    Icon(painter = painterResource(id = R.drawable.baseline_add_to_photos_24),
+                            }, count = 0
+                    )
+                    IconWithBadge(icon = painterResource(id = R.drawable.baseline_add_to_photos_24),
                         contentDescription = "Pick photos",
                         modifier = Modifier
-                            .clickable {
-                                if(Build.VERSION.SDK_INT > 32)
-                                    filePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                                    else
-                                    filePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                            }
-                            .padding(horizontal = 16.dp, vertical = 12.dp))
+                            .combinedClickable(
+                                onClick = {
+                                        if (Build.VERSION.SDK_INT > 32)
+                                            filePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                        else
+                                            filePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                },
+                                onLongClick = {
+                                    sideSheetState.open()
+                                }
+                            ) , count = 0
+                    )
                 },
                 floatingActionButton = {
                     FloatingActionButton(onClick = {
@@ -151,6 +169,9 @@ fun NoteScreen(navController: NavController) {
                         .clip(RoundedCornerShape(10.dp))
                 )
             }
+        }
+        SideSheet(sideSheetState) {
+
         }
     }
 }

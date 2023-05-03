@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,9 +16,19 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
 
 
     var canvasFilePath: String? = ""
-    var photoFilePath: String? = ""
-    var pickedPhotos: Array<String>? = emptyArray()
+    private val _pickedPhotos = MutableStateFlow<Array<String>>(emptyArray())
+    val pickedPhotos = _pickedPhotos.asStateFlow()
 
+
+    fun addNewPhoto(photoPath: String) {
+        viewModelScope.launch {
+            flow {
+                emit(photoPath)
+            }.collect {
+                _pickedPhotos.value = pickedPhotos.value.plus(it)
+            }
+        }
+    }
 
     fun addNewNote(textContent: String) {
         val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
@@ -27,9 +36,8 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
             noteDao.insertNote(
                 Note(
                     textContent = textContent,
-                    photo = photoFilePath,
                     canvas = canvasFilePath,
-                    devicePhotos = jsonParser.toJson(pickedPhotos)
+                    photos = jsonParser.toJson(pickedPhotos.value)
                 )
             )
         }
