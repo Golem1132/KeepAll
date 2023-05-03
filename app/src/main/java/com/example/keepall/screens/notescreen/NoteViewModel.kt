@@ -15,9 +15,21 @@ import javax.inject.Inject
 class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewModel() {
 
 
-    var canvasFilePath: String? = ""
+    private val _canvasFilePath = MutableStateFlow<String>("")
+    val canvasFilePath = _canvasFilePath.asStateFlow()
     private val _pickedPhotos = MutableStateFlow<Array<String>>(emptyArray())
     val pickedPhotos = _pickedPhotos.asStateFlow()
+
+
+    fun addPainting(path: String?) {
+        viewModelScope.launch {
+            flow {
+                emit(path)
+            }.collect {
+                _canvasFilePath.value = it ?: ""
+            }
+        }
+    }
 
 
     fun addNewPhoto(photoPath: String) {
@@ -30,13 +42,25 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
         }
     }
 
+    fun addNewPhoto(photosPath: Array<String>) {
+        viewModelScope.launch {
+            flow {
+                emit(photosPath)
+            }.collect { paths ->
+                paths.forEach {
+                    _pickedPhotos.value = pickedPhotos.value.plus(it)
+                }
+            }
+        }
+    }
+
     fun addNewNote(textContent: String) {
         val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
         viewModelScope.launch(Dispatchers.IO) {
             noteDao.insertNote(
                 Note(
                     textContent = textContent,
-                    canvas = canvasFilePath,
+                    canvas = _canvasFilePath.value,
                     photos = jsonParser.toJson(pickedPhotos.value)
                 )
             )
