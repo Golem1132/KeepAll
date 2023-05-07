@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.keepall.components.AddNoteFAB
 import com.example.keepall.components.NoteSnippet
+import com.example.keepall.navigation.Screens
 import com.example.keepall.navigationbar.KeepAllNavigationBar
 import com.example.keepall.screens.homescreen.HomeViewModel
 import com.example.keepall.ui.theme.Yellow20
@@ -45,7 +46,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 NoteSnippet(modifier = Modifier
                     .clip(RoundedCornerShape(5))
                     .height(200.dp)
-                    .clickable {  },
+                    .clickable {
+                               navController.navigate("${Screens.NoteScreen.route}?id=${note.id}")
+                    },
                     note = note)
             }
 

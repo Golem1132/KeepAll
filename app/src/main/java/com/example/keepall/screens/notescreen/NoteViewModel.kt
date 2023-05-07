@@ -1,5 +1,6 @@
 package com.example.keepall.screens.notescreen
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.keepall.data.Note
@@ -12,13 +13,30 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewModel() {
-
-
+class NoteViewModel @Inject constructor(
+    private val noteDao: NoteDao, savedStateHandle: SavedStateHandle
+) : ViewModel() {
+    private val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
+    var id: Int?
+    private val _textState = MutableStateFlow("")
+    val textState = _textState.asStateFlow()
     private val _canvasFilePath = MutableStateFlow<String>("")
     val canvasFilePath = _canvasFilePath.asStateFlow()
     private val _pickedPhotos = MutableStateFlow<Array<String>>(emptyArray())
     val pickedPhotos = _pickedPhotos.asStateFlow()
+
+    init {
+        id = savedStateHandle.get<Int>("id")
+        viewModelScope.launch(Dispatchers.IO) {
+            if (id != null && id!! > 0) {
+                noteDao.getNote(id!!).let {
+                    _textState.value = it.textContent
+                    _canvasFilePath.value = it.canvas ?: ""
+                    _pickedPhotos.value = jsonParser.fromJson(it.photos ?: "") ?: arrayOf()
+                }
+            }
+        }
+    }
 
 
     fun addPainting(path: String?) {
@@ -47,23 +65,35 @@ class NoteViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
             flow {
                 emit(photosPath)
             }.collect { paths ->
-                    _pickedPhotos.value = paths
+                _pickedPhotos.value = paths
             }
         }
     }
 
     fun addNewNote(textContent: String) {
-        val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
         viewModelScope.launch(Dispatchers.IO) {
-            noteDao.insertNote(
-                Note(
-                    textContent = textContent,
-                    canvas = _canvasFilePath.value,
-                    photos = jsonParser.toJson(pickedPhotos.value)
+            if (id != null && id!! > 0)
+                noteDao.updateNote(
+                    Note(
+                        id = id!!,
+                        textContent = textContent,
+                        canvas = _canvasFilePath.value,
+                        photos = jsonParser.toJson(pickedPhotos.value)
+                    )
                 )
-            )
+            else
+                noteDao.insertNote(
+                    Note(
+                        textContent = textContent,
+                        canvas = _canvasFilePath.value,
+                        photos = jsonParser.toJson(pickedPhotos.value)
+                    )
+                )
         }
     }
 
+    fun updateTextState(newValue: String) {
+        _textState.value = newValue
+    }
 
 }

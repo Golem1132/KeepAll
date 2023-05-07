@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +42,7 @@ import com.example.keepall.utils.getScreenWidth
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NoteScreen(navController: NavController) {
+fun NoteScreen(navController: NavController, id: Int?) {
     val localContext = LocalContext.current
     val viewModel = hiltViewModel<NoteViewModel>()
     val pickedPhotos = viewModel.pickedPhotos.collectAsState()
@@ -94,9 +95,7 @@ fun NoteScreen(navController: NavController) {
                 )
             }
         }
-    val textState = remember {
-        mutableStateOf("")
-    }
+    val textState = viewModel.textState.collectAsState()
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(bottomBar = {
             BottomAppBar(
@@ -173,7 +172,7 @@ fun NoteScreen(navController: NavController) {
             ) {
                 OutlinedTextField(
                     value = textState.value, onValueChange = { newText ->
-                        textState.value = newText
+                        viewModel.updateTextState(newText)
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
