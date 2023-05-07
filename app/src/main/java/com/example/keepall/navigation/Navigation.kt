@@ -29,7 +29,7 @@ fun Navigation(startDestination: String = Screens.HomeScreen.route) {
             }
         )
         ) {
-            NoteScreen(navController, it.arguments?.getInt("id"))
+            NoteScreen(navController)
         }
         composable(route = Screens.CameraScreen.route) {
             CameraScreen()

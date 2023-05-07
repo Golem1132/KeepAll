@@ -42,7 +42,7 @@ import com.example.keepall.utils.getScreenWidth
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NoteScreen(navController: NavController, id: Int?) {
+fun NoteScreen(navController: NavController) {
     val localContext = LocalContext.current
     val viewModel = hiltViewModel<NoteViewModel>()
     val pickedPhotos = viewModel.pickedPhotos.collectAsState()
