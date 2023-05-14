@@ -9,6 +9,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes_tbl")
     fun getAllNotes(): List<Note>
+
     @Query("SELECT * FROM notes_tbl")
     fun getAllNotesAsFlow(): Flow<List<Note>>
 
