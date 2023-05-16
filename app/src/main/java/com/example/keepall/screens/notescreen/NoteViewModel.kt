@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,7 +79,8 @@ class NoteViewModel @Inject constructor(
                         id = id!!,
                         textContent = textContent,
                         canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value)
+                        photos = jsonParser.toJson(pickedPhotos.value),
+                        dateAdded = Date()
                     )
                 )
             else
@@ -86,7 +88,8 @@ class NoteViewModel @Inject constructor(
                     Note(
                         textContent = textContent,
                         canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value)
+                        photos = jsonParser.toJson(pickedPhotos.value),
+                        dateAdded = Date()
                     )
                 )
         }

@@ -23,3 +23,10 @@ val migration_3_4 = object : Migration(3, 4) {
         database.execSQL("CREATE TABLE notes_tbl (id int NOT NULL PRIMARY KEY, textContent text NOT NULL DEFAULT '', canvas text DEFAULT '', photos text DEFAULT '')")
     }
 }
+
+val migration_5_6 = object : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE notes_tbl")
+        database.execSQL("CREATE TABLE notes_tbl (id int NOT NULL PRIMARY KEY, textContent text NOT NULL DEFAULT 'Nothing', canvas text DEFAULT '', photos text DEFAULT '', dateAdded int DEFAULT 'NULL')")
+    }
+}

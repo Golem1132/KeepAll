@@ -32,7 +32,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
                         )
                     }.let { mapped ->
                         _notesList.value = mapped.sortedByDescending {
-                            it.note.id
+                            it.note.dateAdded
                         }
                     }
                 }
@@ -57,7 +57,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
                     )
                 }
                 _notesList.value = tempList.sortedByDescending {
-                    it.note.id
+                    it.note.dateAdded
                 }
             }
         }
@@ -77,7 +77,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
 
             }
             _notesList.value = tempList.sortedByDescending {
-                it.note.id
+                it.note.dateAdded
             }
         }
     }
