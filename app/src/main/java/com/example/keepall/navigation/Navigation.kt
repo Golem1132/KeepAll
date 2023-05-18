@@ -11,6 +11,7 @@ import com.example.keepall.screens.homescreen.HomeScreen
 import com.example.keepall.screens.camera.CameraScreen
 import com.example.keepall.screens.homescreen.HomeViewModel
 import com.example.keepall.screens.notescreen.NoteScreen
+import com.example.keepall.screens.searchscreen.SearchScreen
 
 @Composable
 fun Navigation(startDestination: String = Screens.HomeScreen.route) {
@@ -33,6 +34,9 @@ fun Navigation(startDestination: String = Screens.HomeScreen.route) {
         }
         composable(route = Screens.CameraScreen.route) {
             CameraScreen()
+        }
+        composable(route = Screens.SearchScreen.route) {
+            SearchScreen(navController = navController)
         }
     }
 }

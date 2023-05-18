@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.keepall.R
+import com.example.keepall.data.Note
 import com.example.keepall.model.NoteListItem
 import com.example.keepall.ui.theme.Yellow20
 import com.example.keepall.utils.fromStringToList
@@ -45,6 +46,31 @@ fun NoteSnippet(
                 .padding(it),
             softWrap = true,
             text = item.note.textContent,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+fun NoteSnippet(
+    modifier: Modifier,
+    item: Note
+) {
+    val canvasCount = if (!item.canvas.isNullOrBlank()) 1 else 0
+    val photosCount = fromStringToList(item.photos).size
+
+
+    Scaffold(modifier = modifier,
+        containerColor = Yellow20,
+        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 0.dp),
+        bottomBar = {
+            NoteBottomBar(canvasCount, photosCount)
+        }) {
+        Text(
+            modifier = Modifier
+                .padding(it),
+            softWrap = true,
+            text = item.textContent,
             overflow = TextOverflow.Ellipsis
         )
     }

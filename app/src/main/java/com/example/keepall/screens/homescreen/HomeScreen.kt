@@ -29,7 +29,7 @@ import com.example.keepall.model.NavItemEvent
 import com.example.keepall.navigation.Screens
 import com.example.keepall.navigationbar.KeepAllNavigationBar
 
-private val navItemsList = listOf(
+val navItemsList = listOf(
     NavItem(
         Screens.HomeScreen.route,
         Icons.Default.List,

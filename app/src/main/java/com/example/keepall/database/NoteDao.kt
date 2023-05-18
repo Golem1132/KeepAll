@@ -19,6 +19,9 @@ interface NoteDao {
     @Query("SELECT MAX(id) FROM notes_tbl")
     fun getLastId(): Int?
 
+    @Query("SELECT * FROM notes_tbl WHERE textContent LIKE ('%' || :query ||'%')")
+    fun searchFor(query: String): List<Note>
+
     @Update
     fun updateNote(note: Note)
 
