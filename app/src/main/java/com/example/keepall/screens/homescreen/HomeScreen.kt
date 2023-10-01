@@ -65,8 +65,31 @@ enum class HomeScreenMode {
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     val homeScreenMode = viewModel.homeScreenMode.collectAsState()
     val notesList = viewModel.notesList.collectAsState()
-    Scaffold(topBar = {
-
+    Scaffold(bottomBar = {
+        KeepAllNavigationBar {
+            if (homeScreenMode.value == HomeScreenMode.PreviewMode)
+                TabRow(selectedTabIndex = 0) {
+                    navItemsList.forEach {
+                        Tab(selected = it.route == navController.currentDestination?.route,
+                            onClick = { navController.navigate(it.route) },
+                            icon = {
+                                Icon(imageVector = it.icon, contentDescription = "")
+                            })
+                    }
+                }
+            else
+                NavigationBar {
+                    deletionModeItemsList.forEach {
+                        NavigationBarItem(selected = it.route == navController.currentDestination?.route,
+                            onClick = {
+                            viewModel.performUiEvent(it.action)
+                            },
+                            icon = {
+                                Icon(imageVector = it.icon, contentDescription = "")
+                            })
+                    }
+                }
+        }
     },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {

@@ -11,11 +11,13 @@ import com.example.keepall.data.Note
         Note::class
                ],
     version = 6,
-    exportSchema = true
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 4, to = 5)
+    ]
 
 )
 @TypeConverters(Converters::class)
-
 abstract class KeepAllDatabase: RoomDatabase() {
     abstract fun noteDao(): NoteDao
 }
