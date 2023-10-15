@@ -1,17 +1,14 @@
 package com.example.keepall.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.keepall.screens.homescreen.HomeScreen
 import com.example.keepall.screens.camera.CameraScreen
-import com.example.keepall.screens.homescreen.HomeViewModel
+import com.example.keepall.screens.homescreen.HomeScreen
 import com.example.keepall.screens.notescreen.NoteScreen
-import com.example.keepall.screens.searchscreen.SearchScreen
 
 @Composable
 fun Navigation(startDestination: String = Screens.HomeScreen.route) {
@@ -19,8 +16,7 @@ fun Navigation(startDestination: String = Screens.HomeScreen.route) {
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(route = Screens.HomeScreen.route) {
-            val viewModel = hiltViewModel<HomeViewModel>()
-        HomeScreen(navController = navController, viewModel = viewModel)
+            HomeScreen(navController = navController)
         }
         composable(route = "${Screens.NoteScreen.route}?id={id}", arguments =
         listOf(
@@ -34,9 +30,6 @@ fun Navigation(startDestination: String = Screens.HomeScreen.route) {
         }
         composable(route = Screens.CameraScreen.route) {
             CameraScreen()
-        }
-        composable(route = Screens.SearchScreen.route) {
-            SearchScreen(navController = navController)
         }
     }
 }

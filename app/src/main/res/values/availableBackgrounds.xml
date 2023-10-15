@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="availableBackgrounds">
+        <item>#FFFFFF</item>
+        <item>#F13333</item>
+        <item>#FF5722</item>
+        <item>#BF360C</item>
+        <item>#FFC107</item>
+        <item>#2196F3</item>
+        <item>#673AB7</item>
+        <item>#4CAF50</item>
+    </string-array>
+</resources>
