@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,10 +25,6 @@ class NoteViewModel @Inject constructor(
     val colorState = _colorState.asStateFlow()
     private val _textState = MutableStateFlow("")
     val textState = _textState.asStateFlow()
-    private val _canvasFilePath = MutableStateFlow<String>("")
-    val canvasFilePath = _canvasFilePath.asStateFlow()
-    private val _pickedPhotos = MutableStateFlow<Array<String>>(emptyArray())
-    val pickedPhotos = _pickedPhotos.asStateFlow()
     private val _attachmentsList = MutableStateFlow<Array<String>>(emptyArray())
     val attachmentsList = _attachmentsList.asStateFlow()
 
@@ -40,66 +35,9 @@ class NoteViewModel @Inject constructor(
             if (id != null && id!! > 0) {
                 noteDao.getNote(id!!).let {
                     _textState.value = it.textContent
-                    _canvasFilePath.value = it.canvas ?: ""
-                    _pickedPhotos.value = jsonParser.fromJson(it.photos ?: "") ?: arrayOf()
+
                 }
             }
-        }
-    }
-
-
-    fun addPainting(path: String?) {
-        viewModelScope.launch {
-            flow {
-                emit(path)
-            }.collect {
-                _canvasFilePath.value = it ?: ""
-            }
-        }
-    }
-
-
-    fun addNewPhoto(photoPath: String) {
-        viewModelScope.launch {
-            flow {
-                emit(photoPath)
-            }.collect {
-                _pickedPhotos.value = pickedPhotos.value.plus(it)
-            }
-        }
-    }
-
-    fun addNewPhoto(photosPath: Array<String>) {
-        viewModelScope.launch {
-            flow {
-                emit(photosPath)
-            }.collect { paths ->
-                _pickedPhotos.value = paths
-            }
-        }
-    }
-
-    fun addNewNote(textContent: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (id != null && id!! > 0)
-                noteDao.updateNote(
-                    Note(
-                        id = id!!,
-                        textContent = textContent,
-                        canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value),
-                        dateAdded = Date()
-                    )
-                )
-            else
-                noteDao.insertNote(
-                    Note(
-                        textContent = textContent,
-                        canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value),
-                        dateAdded = Date()
-                    )
-                )
         }
     }
 
@@ -112,8 +50,23 @@ class NoteViewModel @Inject constructor(
     }
 
     fun setColor(pickedColor: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _colorState.emit(Color(pickedColor))
+        }
+    }
+
+    fun updateAttachmentsList(path: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!path.isNullOrEmpty()) {
+                val newList = _attachmentsList.value.plus(path)
+                _attachmentsList.value = newList
+            }
+        }
+    }
+
+    fun updateAttachmentsList(paths: Array<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _attachmentsList.value = paths
         }
     }
 

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -57,6 +59,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.keepall.R
 import com.example.keepall.bottombar.NoteModificationMenu
 import com.example.keepall.bottombar.TextModificationMenu
@@ -71,6 +74,7 @@ import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.screens.gallery.GalleryActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +86,6 @@ fun NoteScreen(navController: NavController) {
         mutableStateOf(BottomBarMode.NOTE_OPERATIONS)
     }
     val attachmentsList = viewModel.attachmentsList.collectAsState()
-    val pickedPhotos = viewModel.pickedPhotos.collectAsState()
     val sheetVisibility = remember {
         mutableStateOf(false)
     }
@@ -94,13 +97,13 @@ fun NoteScreen(navController: NavController) {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 if (result.data?.getStringExtra(PHOTO_PATH) != null)
-                    viewModel.addNewPhoto(result.data!!.getStringExtra(PHOTO_PATH)!!)
+                    viewModel.updateAttachmentsList(result.data!!.getStringExtra(PHOTO_PATH)!!)
             }
         }
     val canvasLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                viewModel.addPainting(result.data?.getStringExtra(CANVAS_PATH))
+                viewModel.updateAttachmentsList(result.data?.getStringExtra(CANVAS_PATH))
             }
         }
 
@@ -108,7 +111,7 @@ fun NoteScreen(navController: NavController) {
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 if (result.data?.getStringArrayExtra(PICKED_PHOTOS) != null) {
-                    viewModel.addNewPhoto(result.data!!.getStringArrayExtra(PICKED_PHOTOS)!!)
+                    viewModel.updateAttachmentsList(result.data!!.getStringArrayExtra(PICKED_PHOTOS)!!)
                 }
             }
         }
@@ -120,7 +123,7 @@ fun NoteScreen(navController: NavController) {
                     localContext,
                     GalleryActivity::class.java
                 ).also {
-                    it.putExtra(PICKED_PHOTOS, pickedPhotos.value)
+                    it.putExtra(PICKED_PHOTOS, attachmentsList.value)
                 }
                 filePickerLauncher.launch(intent)
             }
@@ -151,7 +154,7 @@ fun NoteScreen(navController: NavController) {
                         targetState = bottomBarState.value,
                         label = "BottomBarAnimatedContent",
                         transitionSpec = {
-                            slideInVertically() {
+                            slideInVertically {
                                 it
                             } togetherWith fadeOut()
                         }
@@ -207,8 +210,10 @@ fun NoteScreen(navController: NavController) {
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                LazyRow() {
-
+                LazyRow {
+                    items(attachmentsList.value) { path ->
+                        AsyncImage(model = File(path), contentDescription = "")
+                    }
                 }
                 if (sheetVisibility.value)
                     ModalBottomSheet(
@@ -291,8 +296,13 @@ fun NoteScreen(navController: NavController) {
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedLabelColor = Color.Transparent,
+                        unfocusedLabelColor = Color.Transparent
+                    ),
+                    label = {
+                        Text(text = "Title")
+                    }
                 )
                 HorizontalDivider()
                 TextField(
@@ -307,8 +317,13 @@ fun NoteScreen(navController: NavController) {
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedLabelColor = Color.Transparent,
+                        unfocusedLabelColor = Color.Transparent
+                    ),
+                    label = {
+                        Text(text = "Note")
+                    }
                 )
             }
         }
