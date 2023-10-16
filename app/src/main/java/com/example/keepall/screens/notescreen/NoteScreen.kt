@@ -16,11 +16,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,7 +31,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.BottomAppBar
@@ -54,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.unit.dp
@@ -147,54 +151,56 @@ fun NoteScreen(navController: NavController) {
         mutableStateOf(BottomSheetContent.NoteMenu)
     }
     Surface(modifier = Modifier.fillMaxSize()) {
-        Scaffold(bottomBar = {
-            BottomAppBar(
-                actions = {
-                    AnimatedContent(
-                        targetState = bottomBarState.value,
-                        label = "BottomBarAnimatedContent",
-                        transitionSpec = {
-                            slideInVertically {
-                                it
-                            } togetherWith fadeOut()
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                BottomAppBar(
+                    actions = {
+                        AnimatedContent(
+                            targetState = bottomBarState.value,
+                            label = "BottomBarAnimatedContent",
+                            transitionSpec = {
+                                slideInVertically {
+                                    it
+                                } togetherWith fadeOut()
+                            }
+                        ) { currentState ->
+                            if (currentState == BottomBarMode.NOTE_OPERATIONS)
+                                NoteModificationMenu(
+                                    addIconAction = {
+                                        scope.launch(Dispatchers.IO) {
+                                            currentSheetContent.value = BottomSheetContent.NoteMenu
+                                            sheetVisibility.value = true
+                                            bottomSheetState.expand()
+                                        }
+                                    },
+                                    paletteIconAction = {
+                                        scope.launch(Dispatchers.IO) {
+                                            currentSheetContent.value = BottomSheetContent.ColorMenu
+                                            sheetVisibility.value = true
+                                            bottomSheetState.expand()
+                                        }
+                                    },
+                                    textIconAction = {
+                                        bottomBarState.value = BottomBarMode.TEXT_OPERATIONS
+                                    })
+                            else
+                                TextModificationMenu(
+                                    h1 = { },
+                                    h2 = { },
+                                    normalText = { },
+                                    bold = { },
+                                    italic = { },
+                                    underline = { },
+                                    clear = { },
+                                    exit = {
+                                        bottomBarState.value = BottomBarMode.NOTE_OPERATIONS
+                                    })
                         }
-                    ) { currentState ->
-                        if (currentState == BottomBarMode.NOTE_OPERATIONS)
-                            NoteModificationMenu(
-                                addIconAction = {
-                                    scope.launch(Dispatchers.IO) {
-                                        currentSheetContent.value = BottomSheetContent.NoteMenu
-                                        sheetVisibility.value = true
-                                        bottomSheetState.expand()
-                                    }
-                                },
-                                paletteIconAction = {
-                                    scope.launch(Dispatchers.IO) {
-                                        currentSheetContent.value = BottomSheetContent.ColorMenu
-                                        sheetVisibility.value = true
-                                        bottomSheetState.expand()
-                                    }
-                                },
-                                textIconAction = {
-                                    bottomBarState.value = BottomBarMode.TEXT_OPERATIONS
-                                })
-                        else
-                            TextModificationMenu(
-                                h1 = { },
-                                h2 = { },
-                                normalText = { },
-                                bold = { },
-                                italic = { },
-                                underline = { },
-                                clear = { },
-                                exit = {
-                                    bottomBarState.value = BottomBarMode.NOTE_OPERATIONS
-                                })
                     }
-                }
 
-            )
-        },
+                )
+            },
             topBar = {
                 Icon(imageVector = Icons.Default.Close,
                     contentDescription = "Discard note",
@@ -204,127 +210,133 @@ fun NoteScreen(navController: NavController) {
                             navController.popBackStack()
                         })
             }) {
-            Column(
-                modifier = Modifier
-                    .padding(it)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                LazyRow {
-                    items(attachmentsList.value) { path ->
-                        AsyncImage(model = File(path), contentDescription = "")
-                    }
-                }
-                if (sheetVisibility.value)
-                    ModalBottomSheet(
-                        sheetState = bottomSheetState,
-                        shape = RectangleShape,
-                        dragHandle = {},
-                        onDismissRequest = {
-                            scope.launch(Dispatchers.IO) {
-                                bottomSheetState.hide()
-                            }.invokeOnCompletion {
-                                sheetVisibility.value = false
-                            }
-                        }) {
-                        val scrollState = rememberScrollState(
-                            initial = 0
-                        )
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            if (currentSheetContent.value == BottomSheetContent.ColorMenu) {
-                                Row(
-                                    modifier = Modifier
-                                        .horizontalScroll(
-                                            state = scrollState
-                                        ),
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    stringArrayResource(id = R.array.availableBackgrounds).forEach { color ->
-                                        val parsedColor = android.graphics.Color.parseColor(color)
-                                        Box(
-                                            modifier = Modifier
-                                                .size(50.dp)
-                                                .clip(CircleShape)
-                                                .background(Color(parsedColor))
-                                                .clickable {
-                                                    viewModel.setColor(parsedColor)
-                                                }
-                                                .then(
-                                                    if (parsedColor == currentColor.value.toArgb())
-                                                        Modifier.border(
-                                                            2.dp,
-                                                            Color.Black,
-                                                            CircleShape
-                                                        )
-                                                    else
-                                                        Modifier.border(2.dp, Color.Transparent)
-                                                )
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                }
-                            } else {
-                                MenuItem("Take photo") {
-                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                                }
-                                MenuItem("Add photo") {
-                                    if (Build.VERSION.SDK_INT > 32)
-                                        filePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                                    else
-                                        filePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                                }
-                                MenuItem("Add painting") {
-                                    canvasLauncher.launch(
-                                        Intent(
-                                            localContext,
-                                            CanvasActivity::class.java
-                                        )
+            if (sheetVisibility.value)
+                ModalBottomSheet(
+                    sheetState = bottomSheetState,
+                    shape = RectangleShape,
+                    dragHandle = {},
+                    onDismissRequest = {
+                        scope.launch(Dispatchers.IO) {
+                            bottomSheetState.hide()
+                        }.invokeOnCompletion {
+                            sheetVisibility.value = false
+                        }
+                    }) {
+                    val scrollState = rememberScrollState(
+                        initial = 0
+                    )
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        if (currentSheetContent.value == BottomSheetContent.ColorMenu) {
+                            Row(
+                                modifier = Modifier
+                                    .horizontalScroll(
+                                        state = scrollState
+                                    ),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Spacer(modifier = Modifier.width(10.dp))
+                                stringArrayResource(id = R.array.availableBackgrounds).forEach { color ->
+                                    val parsedColor = android.graphics.Color.parseColor(color)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(parsedColor))
+                                            .clickable {
+                                                viewModel.setColor(parsedColor)
+                                            }
+                                            .then(
+                                                if (parsedColor == currentColor.value.toArgb())
+                                                    Modifier.border(
+                                                        2.dp,
+                                                        Color.Black,
+                                                        CircleShape
+                                                    )
+                                                else
+                                                    Modifier.border(2.dp, Color.Transparent)
+                                            )
                                     )
                                 }
+                                Spacer(modifier = Modifier.width(10.dp))
+                            }
+                        } else {
+                            MenuItem("Take photo") {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                            MenuItem("Add photo") {
+                                if (Build.VERSION.SDK_INT > 32)
+                                    filePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                else
+                                    filePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            }
+                            MenuItem("Add painting") {
+                                canvasLauncher.launch(
+                                    Intent(
+                                        localContext,
+                                        CanvasActivity::class.java
+                                    )
+                                )
                             }
                         }
                     }
-                TextField(
-                    value = titleState.value, onValueChange = { newText ->
-                        viewModel.updateTitleState(newText)
-                    },
+                }
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            ) {
+                val maxHeight = this.maxHeight
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedLabelColor = Color.Transparent,
-                        unfocusedLabelColor = Color.Transparent
-                    ),
-                    label = {
-                        Text(text = "Title")
+                        .verticalScroll(rememberScrollState())
+                        .heightIn(min = maxHeight),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    LazyRow(modifier = Modifier.heightIn(min = 0.dp, max = maxHeight / 2)) {
+                        items(attachmentsList.value) { path ->
+                            AsyncImage(
+                                contentScale = ContentScale.Fit,
+                                model = File(path),
+                                contentDescription = ""
+                            )
+                        }
                     }
-                )
-                HorizontalDivider()
-                TextField(
-                    value = textState.value, onValueChange = { newText ->
-                        viewModel.updateTextState(newText)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedLabelColor = Color.Transparent,
-                        unfocusedLabelColor = Color.Transparent
-                    ),
-                    label = {
-                        Text(text = "Note")
-                    }
-                )
+
+                    TextField(
+                        value = titleState.value, onValueChange = { newText ->
+                            viewModel.updateTitleState(newText)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        placeholder = {
+                            Text(text = "Title")
+                        }
+                    )
+                    HorizontalDivider()
+                    TextField(
+                        value = textState.value, onValueChange = { newText ->
+                            viewModel.updateTextState(newText)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        placeholder = {
+                            Text(text = "Note")
+                        }
+                    )
+                }
             }
         }
     }
