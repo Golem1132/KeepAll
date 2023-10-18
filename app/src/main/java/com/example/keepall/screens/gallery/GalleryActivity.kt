@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
+import com.example.keepall.components.CheckableImage
 import com.example.keepall.constants.PICKED_PHOTOS
 import com.example.keepall.topbar.KeepAllTopAppBar
 import com.example.keepall.ui.theme.KeepAllTheme
@@ -107,39 +108,41 @@ class GalleryActivity : ComponentActivity() {
                             columns = GridCells.Fixed(2)
                         ) {
                             items(items = fetchedImages.value) { item ->
-                                AsyncImage(
-                                    modifier = Modifier
-                                        .windowInsetsPadding(
-                                            WindowInsets(
-                                                left = 10.dp,
-                                                top = 10.dp,
-                                                right = 10.dp,
-                                                bottom = 10.dp,
+                                CheckableImage(checked = checkedImages.value.contains(item), isCheckboxVisible = isPickingMultiple) {
+                                    AsyncImage(
+                                        modifier = Modifier
+                                            .windowInsetsPadding(
+                                                WindowInsets(
+                                                    left = 10.dp,
+                                                    top = 10.dp,
+                                                    right = 10.dp,
+                                                    bottom = 10.dp,
+                                                )
                                             )
-                                        )
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (isPickingMultiple) {
-                                                    viewModel.putImageToCheckedList(item)
-                                                } else {
-                                                    val intent = Intent().putExtra(
-                                                        PICKED_PHOTOS,
-                                                        listOf(item).toTypedArray()
-                                                    )
-                                                    setResult(RESULT_OK, intent)
-                                                    finish()
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (isPickingMultiple) {
+                                                        viewModel.putImageToCheckedList(item)
+                                                    } else {
+                                                        val intent = Intent().putExtra(
+                                                            PICKED_PHOTOS,
+                                                            listOf(item).toTypedArray()
+                                                        )
+                                                        setResult(RESULT_OK, intent)
+                                                        finish()
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    if (!isPickingMultiple) {
+                                                        viewModel.putImageToCheckedList(item)
+                                                        isPickingMultiple = true
+                                                    }
                                                 }
-                                            },
-                                            onLongClick = {
-                                                if (!isPickingMultiple) {
-                                                    viewModel.putImageToCheckedList(item)
-                                                    isPickingMultiple = true
-                                                }
-                                            }
-                                        ),
-                                    model = File(item),
-                                    contentDescription = "Photo in your device",
-                                )
+                                            ),
+                                        model = File(item),
+                                        contentDescription = "Photo in your device",
+                                    )
+                                }
                             }
                         }
                     }
