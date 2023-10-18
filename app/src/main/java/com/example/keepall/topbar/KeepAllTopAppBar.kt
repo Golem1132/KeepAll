@@ -10,7 +10,11 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -24,17 +28,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeepAllTopAppBar(
     mainIcon: @Composable () -> Unit,
     secondaryIcon: @Composable () -> Unit,
+    actionIcon: @Composable () -> Unit = {},
     title: @Composable () -> Unit,
     isTitleVisible: Boolean
 ) {
     TopAppBar(
         modifier = Modifier,
+        windowInsets = WindowInsets(left = 16.dp, right = 16.dp),
         title = {
             AnimatedVisibility(
                 enter = expandHorizontally() + fadeIn(),
@@ -52,12 +59,26 @@ fun KeepAllTopAppBar(
                 }
             ) { visibility ->
                 if (visibility) {
-                    secondaryIcon()
+                    Row {
+                        secondaryIcon()
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
                 } else {
-                    mainIcon()
+                    Row {
+                        mainIcon()
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
                 }
             }
 
+        },
+        actions = {
+            if (isTitleVisible) {
+                Row {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    actionIcon()
+                }
+            }
         }
     )
 }
@@ -105,6 +126,15 @@ fun PreviewKeepAllTopAppBar() {
             )
         },
         secondaryIcon = {
+            Icon(
+                modifier = Modifier.clickable {
+                    isVisible.value = !isVisible.value
+                },
+                imageVector = Icons.Default.Close,
+                contentDescription = "Collapse search field"
+            )
+        },
+        actionIcon = {
             Icon(
                 modifier = Modifier.clickable {
                     isVisible.value = !isVisible.value

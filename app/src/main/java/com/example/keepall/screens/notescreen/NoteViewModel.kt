@@ -66,8 +66,16 @@ class NoteViewModel @Inject constructor(
 
     fun updateAttachmentsList(paths: Array<String>) {
         viewModelScope.launch(Dispatchers.IO) {
-            _attachmentsList.value = paths
+            var newList = _attachmentsList.value
+            paths.forEach {
+                newList = newList.plus(it)
+            }
+            _attachmentsList.value = newList
         }
+    }
+
+    fun saveNote() {
+
     }
 
 }

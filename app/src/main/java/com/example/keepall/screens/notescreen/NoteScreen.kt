@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -126,9 +128,7 @@ fun NoteScreen(navController: NavController) {
                 val intent = Intent(
                     localContext,
                     GalleryActivity::class.java
-                ).also {
-                    it.putExtra(PICKED_PHOTOS, attachmentsList.value)
-                }
+                )
                 filePickerLauncher.launch(intent)
             }
         }
@@ -196,6 +196,21 @@ fun NoteScreen(navController: NavController) {
                                     exit = {
                                         bottomBarState.value = BottomBarMode.NOTE_OPERATIONS
                                     })
+                        }
+                    },
+                    floatingActionButton = {
+
+                        AnimatedContent(targetState = bottomBarState.value,
+                            label = "BottomBarAnimatedContent",
+                            transitionSpec = {
+                                fadeIn() togetherWith fadeOut()
+                            }) { currentState ->
+                            if (currentState == BottomBarMode.NOTE_OPERATIONS)
+                                FloatingActionButton(onClick = {
+                                    viewModel.saveNote()
+                                }) {
+                                    Text(text = "Save")
+                                }
                         }
                     }
 
