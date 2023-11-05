@@ -62,6 +62,15 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -78,6 +87,7 @@ import com.example.keepall.internal.BottomSheetContent
 import com.example.keepall.screens.camera.CameraActivity
 import com.example.keepall.screens.canvas.CanvasActivity
 import com.example.keepall.screens.gallery.GalleryActivity
+import com.example.keepall.ui.theme.Typography
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -150,6 +160,9 @@ fun NoteScreen(navController: NavController) {
     val currentSheetContent = remember {
         mutableStateOf(BottomSheetContent.NoteMenu)
     }
+
+    val currentStyle = viewModel.currentStyle.collectAsState()
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -186,13 +199,76 @@ fun NoteScreen(navController: NavController) {
                                     })
                             else
                                 TextModificationMenu(
-                                    h1 = { },
-                                    h2 = { },
-                                    normalText = { },
-                                    bold = { },
-                                    italic = { },
-                                    underline = { },
-                                    clear = { },
+                                    h1 = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(fontSize = Typography.headlineLarge.fontSize),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    h2 = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(fontSize = Typography.headlineMedium.fontSize),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    normalText = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(fontSize = TextUnit.Unspecified),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    bold = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(fontWeight = FontWeight.Bold),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    italic = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(fontStyle = FontStyle.Italic),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    underline = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            currentStyle.value.copy(
+                                                currentStyle.value.item.copy(textDecoration = TextDecoration.Underline),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
+                                    clear = {
+                                        viewModel.styleList.add(currentStyle.value)
+                                        viewModel.updateCurrentStyle(
+                                            AnnotatedString.Range(
+                                                SpanStyle(),
+                                                textState.value.text.length,
+                                                textState.value.text.length
+                                            )
+                                        )
+                                    },
                                     exit = {
                                         bottomBarState.value = BottomBarMode.NOTE_OPERATIONS
                                     })
@@ -207,7 +283,10 @@ fun NoteScreen(navController: NavController) {
                             }) { currentState ->
                             if (currentState == BottomBarMode.NOTE_OPERATIONS)
                                 FloatingActionButton(onClick = {
-                                    viewModel.saveNote()
+                                    viewModel.styleList.add(currentStyle.value)
+                                    viewModel.saveNote {
+                                        navController.popBackStack()
+                                    }
                                 }) {
                                     Text(text = "Save")
                                 }
@@ -337,6 +416,48 @@ fun NoteScreen(navController: NavController) {
                     TextField(
                         value = textState.value, onValueChange = { newText ->
                             viewModel.updateTextState(newText)
+                            val start = currentStyle.value.start
+                            val end = newText.text.length
+                            viewModel.updateCurrentStyle(
+                                currentStyle.value.copy(
+                                    start = if (start >= end) newText.text.length else start,
+                                    end = end
+                                )
+                            )
+                        },
+                        visualTransformation = { _ ->
+                            TransformedText(buildAnnotatedString {
+                                for (index in 0 until viewModel.styleList.size) {
+                                    if (viewModel.styleList[index].end > textState.value.text.length) {
+                                        if (viewModel.styleList[index].start > textState.value.text.length) {
+                                            viewModel.styleList.removeAt(index)
+                                            continue
+                                        } else {
+                                            viewModel.styleList[index] =
+                                                viewModel.styleList[index].copy(
+                                                    end = viewModel.getText().length
+                                                )
+                                            addStyle(
+                                                viewModel.styleList[index].item,
+                                                viewModel.styleList[index].start,
+                                                viewModel.styleList[index].end
+                                            )
+                                        }
+                                    } else {
+                                        addStyle(
+                                            viewModel.styleList[index].item,
+                                            viewModel.styleList[index].start,
+                                            viewModel.styleList[index].end
+                                        )
+                                    }
+                                }
+                                addStyle(
+                                    currentStyle.value.item,
+                                    currentStyle.value.start,
+                                    currentStyle.value.end
+                                )
+                                append(textState.value.text)
+                            }, OffsetMapping.Identity)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -1,6 +1,5 @@
 package com.example.keepall.database
 
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -10,7 +9,7 @@ import com.example.keepall.data.Note
     entities = [
         Note::class
                ],
-    version = 6,
+    version = 7,
     exportSchema = true
 
 )

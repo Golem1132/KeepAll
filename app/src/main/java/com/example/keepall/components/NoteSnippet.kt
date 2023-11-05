@@ -1,5 +1,6 @@
 package com.example.keepall.components
 
+import android.text.Html
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.keepall.data.Note
+import com.example.keepall.spannedconverter.toAnnotatedString
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,7 +57,7 @@ fun NoteSnippet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
-                text = "Title here a tutaj to długooooooooooooooooooooooooooooooooooooo",
+                text = item.title,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 overflow = TextOverflow.Ellipsis,
@@ -66,7 +68,7 @@ fun NoteSnippet(
                     .fillMaxWidth()
                     .padding(10.dp),
                 overflow = TextOverflow.Ellipsis,
-                text = "Content here and might be large XD i długossssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss sdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                text = Html.fromHtml(item.textContent, Html.FROM_HTML_MODE_COMPACT).toAnnotatedString()
             )
 
         }

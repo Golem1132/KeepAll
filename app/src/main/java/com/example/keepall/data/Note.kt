@@ -9,9 +9,10 @@ import java.util.Date
 data class Note(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    @ColumnInfo(defaultValue = "Nothing")
+    @ColumnInfo(defaultValue = "No title")
+    val title: String,
+    @ColumnInfo(defaultValue = "Nothing here")
     val textContent: String,
-    val canvas: String?,
-    val photos: String?,
+    val attachments: String,
     val dateAdded: Date?
 )

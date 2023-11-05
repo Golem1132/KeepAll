@@ -73,6 +73,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
                 HomeScreenEvent.NO_ACTION -> {}
                 HomeScreenEvent.DELETE -> {
                     deleteCheckedItems()
+                    uncheckEveryItem()
                     _homeScreenMode.value = HomeScreenMode.PreviewMode
                 }
 
