@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.keepall.data.Note
-import com.example.keepall.spannedconverter.toAnnotatedString
+import com.example.keepall.spannedconverter.HtmlConverter
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -31,6 +31,7 @@ fun NoteSnippet(
     onLongClick: () -> Unit,
     isMarked: Boolean
 ) {
+    val htmlConverter = HtmlConverter()
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -68,7 +69,12 @@ fun NoteSnippet(
                     .fillMaxWidth()
                     .padding(10.dp),
                 overflow = TextOverflow.Ellipsis,
-                text = Html.fromHtml(item.textContent, Html.FROM_HTML_MODE_COMPACT).toAnnotatedString()
+                text = htmlConverter.toAnnotatedString(
+                    Html.fromHtml(
+                        item.textContent,
+                        Html.FROM_HTML_MODE_COMPACT
+                    )
+                )
             )
 
         }

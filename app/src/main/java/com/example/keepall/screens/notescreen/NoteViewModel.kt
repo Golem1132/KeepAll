@@ -11,9 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
-import com.example.keepall.spannedconverter.extractStyle
-import com.example.keepall.spannedconverter.toAnnotatedString
-import com.example.keepall.spannedconverter.toHtml
+import com.example.keepall.spannedconverter.HtmlConverter
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +39,7 @@ class NoteViewModel @Inject constructor(
         MutableStateFlow(AnnotatedString.Range<SpanStyle>(SpanStyle(), 0, 0))
     val currentStyle = _currentStyle.asStateFlow()
     val styleList = mutableListOf<AnnotatedString.Range<SpanStyle>>()
-
+    private val htmlConverter = HtmlConverter()
 
     init {
         id = savedStateHandle.get<Int>("id")
@@ -51,10 +49,10 @@ class NoteViewModel @Inject constructor(
                     val extractedText = Html.fromHtml(it.textContent, Html.FROM_HTML_MODE_COMPACT)
                     _titleState.value = it.title
                     _textState.value = TextFieldValue(
-                        extractedText.toAnnotatedString().text
+                        htmlConverter.toAnnotatedString(extractedText).text
                     )
                     _attachmentsList.value = jsonParser.fromJson(it.attachments) ?: emptyArray()
-                    styleList.addAll(extractedText.extractStyle())
+                    styleList.addAll(htmlConverter.getStyles(it.textContent))
                 }
             }
         }
@@ -107,16 +105,17 @@ class NoteViewModel @Inject constructor(
                 Note(
                     id = if (id == null || id == -1) 0 else id!!,
                     title = _titleState.value,
-                    textContent = buildAnnotatedString {
-                        for (index in 0 until styleList.size) {
-                            addStyle(
-                                styleList[index].item,
-                                styleList[index].start,
-                                styleList[index].end
-                            )
-                        }
-                        append(textState.value.text)
-                    }.toHtml(),
+                    textContent = htmlConverter.convertToHtml(
+                        buildAnnotatedString {
+                            for (index in 0 until styleList.size) {
+                                addStyle(
+                                    styleList[index].item,
+                                    styleList[index].start,
+                                    styleList[index].end
+                                )
+                            }
+                            append(textState.value.text)
+                        }),
                     attachments = jsonParser.toJson(_attachmentsList.value),
                     dateAdded = Date()
                 )
