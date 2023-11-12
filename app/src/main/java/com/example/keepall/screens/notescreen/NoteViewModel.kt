@@ -40,6 +40,8 @@ class NoteViewModel @Inject constructor(
     val currentStyle = _currentStyle.asStateFlow()
     val styleList = mutableListOf<AnnotatedString.Range<SpanStyle>>()
     private val htmlConverter = HtmlConverter()
+    private val _isLoaded = MutableStateFlow<Boolean>(false)
+    val isLoaded = _isLoaded.asStateFlow()
 
     init {
         id = savedStateHandle.get<Int>("id")
@@ -55,6 +57,8 @@ class NoteViewModel @Inject constructor(
                     styleList.addAll(htmlConverter.getStyles(it.textContent))
                 }
             }
+        }.invokeOnCompletion {
+            _isLoaded.value = true
         }
     }
 

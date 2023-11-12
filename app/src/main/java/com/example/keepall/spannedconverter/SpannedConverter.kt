@@ -4,7 +4,6 @@ import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
-import android.text.style.AbsoluteSizeSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -14,12 +13,20 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
 import androidx.core.text.HtmlCompat
 import androidx.core.text.toHtml
 import com.example.keepall.ui.theme.Typography
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 
 class HtmlConverter {
-    private val SIZE_PATTERN = Regex("<span style=\"font-size:\\d\\.\\d\\dem;\">.*</span>")
+
+    private data class UnsupportedElement(
+        val start: Int,
+        val style: SpanStyle,
+        val end: Int
+    )
     fun convertToHtml(annotatedString: AnnotatedString): String {
         val spannable = SpannableStringBuilder(annotatedString.text)
         annotatedString.spanStyles.forEach { style ->
@@ -46,7 +53,7 @@ class HtmlConverter {
                 )
             when (style.item.fontSize) {
                 Typography.headlineLarge.fontSize -> spannable.setSpan(
-                    AbsoluteSizeSpan(14),
+                    RelativeSizeSpan(1.5f),
                     style.start,
                     style.end,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -60,7 +67,12 @@ class HtmlConverter {
                 )
 
                 else -> {
-                    //do absolutely nothing
+                    spannable.setSpan(
+                        RelativeSizeSpan(1.0f),
+                        style.start,
+                        style.end,
+                        Spannable.SPAN_EXCLUSIVE_INCLUSIVE
+                    )
                 }
             }
         }
@@ -72,7 +84,6 @@ class HtmlConverter {
         buildAnnotatedString {
             append(spanned.toString())
             spanned.getSpans(0, spanned.length, Any::class.java).forEach { span ->
-                println(span::class.java.name)
                 val start = spanned.getSpanStart(span)
                 val end = spanned.getSpanEnd(span)
                 when (span) {
@@ -143,17 +154,48 @@ class HtmlConverter {
             }
         }
         //handle unsupported tags
-/*                var escapedSpans = html.replace("<span ", "&lt;span ", true)
-                escapedSpans = escapedSpans.replace("</span>", "&lt;/span&gt;", true)
-                val cooo = HtmlCompat.fromHtml(escapedSpans, HtmlCompat.FROM_HTML_MODE_COMPACT)
-                val sb = SpannableStringBuilder(cooo)
 
-                val m: Matcher = SIZE_PATTERN.toPattern().matcher(sb)
-                do {
-                    if(m.find()) {
-                        println("${m.start()} ${m.group()}  ${m.end()} ")
+        val parserFactory = XmlPullParserFactory.newInstance()
+        parserFactory.isNamespaceAware = true
+        val parser = parserFactory.newPullParser()
+        var escapedSpans = html.replace("<span ", "&lt;span ", true)
+        escapedSpans = escapedSpans.replace("</span>", "&lt;/span&gt;", true)
+        val cooo = HtmlCompat.fromHtml(escapedSpans, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        val sb = SpannableStringBuilder(cooo)
+        parser.setInput(sb.toString().reader())
+        val unsupportedElements: MutableList<UnsupportedElement> = mutableListOf()
+        var currentIndex = 0
+        var eventType = XmlPullParser.START_DOCUMENT
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    if (parser.getAttributeValue(0) == "font-size:1.50em;")
+                    unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = Typography.headlineLarge.fontSize), 0))
+                    else if (parser.getAttributeValue(0) == "font-size:1.40em;")
+                        unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = Typography.headlineMedium.fontSize), 0))
+                    else
+                        unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = TextUnit.Unspecified), 0))
+                }
+
+                XmlPullParser.END_TAG -> {
+                    for (i in unsupportedElements.size - 1 downTo 0) {
+                        if (unsupportedElements[i].end == 0)
+                            unsupportedElements[i] = unsupportedElements[i].copy(end = currentIndex)
                     }
-                } while (!m.hitEnd())*/
+                }
+
+                XmlPullParser.TEXT -> {
+                    currentIndex += parser.text.length
+                }
+            }
+            eventType = parser.next()
+        }
+        for (item in unsupportedElements) {
+            styleList.add(AnnotatedString.Range<SpanStyle>(
+                item.style, item.start, item.end
+            ))
+        }
+
         return styleList
     }
 }

@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -162,8 +163,9 @@ fun NoteScreen(navController: NavController) {
     }
 
     val currentStyle = viewModel.currentStyle.collectAsState()
-
-    Surface(modifier = Modifier.fillMaxSize()) {
+    val isLoaded = viewModel.isLoaded.collectAsState()
+    if(isLoaded.value)
+        Surface(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
@@ -430,6 +432,7 @@ fun NoteScreen(navController: NavController) {
                                 for (index in 0 until viewModel.styleList.size) {
                                     if (viewModel.styleList[index].end > textState.value.text.length) {
                                         if (viewModel.styleList[index].start > textState.value.text.length) {
+                                            println("REMOVE ${viewModel.styleList[index].start} > ${textState.value.text.length}")
                                             viewModel.styleList.removeAt(index)
                                             continue
                                         } else {
@@ -476,4 +479,12 @@ fun NoteScreen(navController: NavController) {
             }
         }
     }
+    else
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator()
+            }
+        }
 }
