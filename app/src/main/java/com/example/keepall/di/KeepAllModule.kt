@@ -26,7 +26,7 @@ class KeepAllModule {
             context,
             KeepAllDatabase::class.java,
             "KeepAllDb"
-        ).addMigrations(MIGRATION_6_TO_7)
+        ).addMigrations(MIGRATION_6_TO_7, MIGRATION_7_TO_8)
             .fallbackToDestructiveMigration()
             .build()
 }

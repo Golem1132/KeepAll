@@ -351,6 +351,8 @@ fun NoteScreen(navController: NavController) {
                         )
                         Column(modifier = Modifier.fillMaxWidth()) {
                             if (currentSheetContent.value == BottomSheetContent.ColorMenu) {
+                                Text(text = "Pick background color")
+                                Spacer(modifier = Modifier.height(10.dp))
                                 Row(
                                     modifier = Modifier
                                         .horizontalScroll(
@@ -383,6 +385,7 @@ fun NoteScreen(navController: NavController) {
                                     }
                                     Spacer(modifier = Modifier.width(10.dp))
                                 }
+                                Spacer(modifier = Modifier.height(50.dp))
                             } else {
                                 MenuItem("Take photo") {
                                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA)

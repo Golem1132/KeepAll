@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 8,
+    "identityHash": "845cc7bb3d7e8f60bda511cc51a2e54a",
+    "entities": [
+      {
+        "tableName": "notes_tbl",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL DEFAULT 'No title', `textContent` TEXT NOT NULL DEFAULT 'Nothing here', `color` INTEGER NOT NULL, `attachments` TEXT NOT NULL, `dateAdded` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'No title'"
+          },
+          {
+            "fieldPath": "textContent",
+            "columnName": "textContent",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'Nothing here'"
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attachments",
+            "columnName": "attachments",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateAdded",
+            "columnName": "dateAdded",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '845cc7bb3d7e8f60bda511cc51a2e54a')"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 package com.example.keepall.screens.notescreen
 
-import android.text.Html
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -48,11 +48,11 @@ class NoteViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             if (id != null && id!! > 0) {
                 noteDao.getNote(id!!).let {
-                    val extractedText = Html.fromHtml(it.textContent, Html.FROM_HTML_MODE_COMPACT)
                     _titleState.value = it.title
                     _textState.value = TextFieldValue(
-                        htmlConverter.toAnnotatedString(extractedText).text
+                        htmlConverter.toAnnotatedString(it.textContent).text
                     )
+                    _colorState.value = Color(it.color)
                     _attachmentsList.value = jsonParser.fromJson(it.attachments) ?: emptyArray()
                     styleList.addAll(htmlConverter.getStyles(it.textContent))
                 }
@@ -120,6 +120,7 @@ class NoteViewModel @Inject constructor(
                             }
                             append(textState.value.text)
                         }),
+                    color = _colorState.value.toArgb(),
                     attachments = jsonParser.toJson(_attachmentsList.value),
                     dateAdded = Date()
                 )

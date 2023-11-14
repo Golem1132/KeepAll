@@ -13,6 +13,8 @@ data class Note(
     val title: String,
     @ColumnInfo(defaultValue = "Nothing here")
     val textContent: String,
+    @ColumnInfo(typeAffinity = ColumnInfo.INTEGER)
+    val color: Int,
     val attachments: String,
     val dateAdded: Date?
 )

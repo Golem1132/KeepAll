@@ -10,3 +10,10 @@ val MIGRATION_6_TO_7 = object : Migration(6, 7) {
     }
 
 }
+
+val MIGRATION_7_TO_8 = object : Migration(7, 8) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE notes_tbl")
+        database.execSQL("CREATE TABLE notes_tbl (id INTEGER NOT NULL PRIMARY KEY, title TEXT NOT NULL DEFAULT 'No title', textContent TEXT NOT NULL DEFAULT 'Nothing here', color INTEGER NOT NULL, attachments TEXT NOT NULL, dateAdded INTEGER DEFAULT 'NULL')")
+    }
+}

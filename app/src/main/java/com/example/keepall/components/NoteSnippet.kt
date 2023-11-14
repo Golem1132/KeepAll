@@ -1,6 +1,5 @@
 package com.example.keepall.components
 
-import android.text.Html
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -15,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,7 +51,8 @@ fun NoteSnippet(
                 onLongClick = onLongClick,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(5)
+        shape = RoundedCornerShape(5),
+        color = Color(item.color)
     ) {
         Column(modifier = Modifier.heightIn(100.dp, 250.dp)) {
             Text(
@@ -69,12 +70,7 @@ fun NoteSnippet(
                     .fillMaxWidth()
                     .padding(10.dp),
                 overflow = TextOverflow.Ellipsis,
-                text = htmlConverter.toAnnotatedString(
-                    Html.fromHtml(
-                        item.textContent,
-                        Html.FROM_HTML_MODE_COMPACT
-                    )
-                )
+                text = htmlConverter.toAnnotatedString(item.textContent)
             )
 
         }

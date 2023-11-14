@@ -1,9 +1,9 @@
 package com.example.keepall.spannedconverter
 
 import android.graphics.Typeface
+import android.text.Html
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.UnderlineSpan
@@ -27,6 +27,7 @@ class HtmlConverter {
         val style: SpanStyle,
         val end: Int
     )
+
     fun convertToHtml(annotatedString: AnnotatedString): String {
         val spannable = SpannableStringBuilder(annotatedString.text)
         annotatedString.spanStyles.forEach { style ->
@@ -80,8 +81,12 @@ class HtmlConverter {
         return spannable.toHtml()
     }
 
-    fun toAnnotatedString(spanned: Spanned): AnnotatedString =
-        buildAnnotatedString {
+    fun toAnnotatedString(html: String): AnnotatedString {
+        val spanned = Html.fromHtml(
+            html,
+            Html.FROM_HTML_MODE_COMPACT
+        )
+        return buildAnnotatedString {
             append(spanned.toString())
             spanned.getSpans(0, spanned.length, Any::class.java).forEach { span ->
                 val start = spanned.getSpanStart(span)
@@ -116,7 +121,66 @@ class HtmlConverter {
                 }
             }
 
+            val parserFactory = XmlPullParserFactory.newInstance()
+            parserFactory.isNamespaceAware = true
+            val parser = parserFactory.newPullParser()
+            var escapedSpans = html.replace("<span ", "&lt;span ", true)
+            escapedSpans = escapedSpans.replace("</span>", "&lt;/span&gt;", true)
+            val cooo = HtmlCompat.fromHtml(escapedSpans, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            val sb = SpannableStringBuilder(cooo)
+            parser.setInput(sb.toString().reader())
+            val unsupportedElements: MutableList<UnsupportedElement> = mutableListOf()
+            var currentIndex = 0
+            var eventType = XmlPullParser.START_DOCUMENT
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        if (parser.getAttributeValue(0) == "font-size:1.50em;")
+                            unsupportedElements.add(
+                                UnsupportedElement(
+                                    currentIndex,
+                                    SpanStyle(fontSize = Typography.headlineLarge.fontSize),
+                                    0
+                                )
+                            )
+                        else if (parser.getAttributeValue(0) == "font-size:1.40em;")
+                            unsupportedElements.add(
+                                UnsupportedElement(
+                                    currentIndex,
+                                    SpanStyle(fontSize = Typography.headlineMedium.fontSize),
+                                    0
+                                )
+                            )
+                        else
+                            unsupportedElements.add(
+                                UnsupportedElement(
+                                    currentIndex,
+                                    SpanStyle(fontSize = TextUnit.Unspecified),
+                                    0
+                                )
+                            )
+                    }
+
+                    XmlPullParser.END_TAG -> {
+                        for (i in unsupportedElements.size - 1 downTo 0) {
+                            if (unsupportedElements[i].end == 0)
+                                unsupportedElements[i] =
+                                    unsupportedElements[i].copy(end = currentIndex)
+                        }
+                    }
+
+                    XmlPullParser.TEXT -> {
+                        currentIndex += parser.text.length
+                    }
+                }
+                eventType = parser.next()
+            }
+            for (item in unsupportedElements) {
+                addStyle(item.style, item.start, item.end)
+            }
+
         }
+    }
 
     fun getStyles(html: String): List<AnnotatedString.Range<SpanStyle>> {
         val realHtml = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
@@ -170,11 +234,29 @@ class HtmlConverter {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     if (parser.getAttributeValue(0) == "font-size:1.50em;")
-                    unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = Typography.headlineLarge.fontSize), 0))
+                        unsupportedElements.add(
+                            UnsupportedElement(
+                                currentIndex,
+                                SpanStyle(fontSize = Typography.headlineLarge.fontSize),
+                                0
+                            )
+                        )
                     else if (parser.getAttributeValue(0) == "font-size:1.40em;")
-                        unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = Typography.headlineMedium.fontSize), 0))
+                        unsupportedElements.add(
+                            UnsupportedElement(
+                                currentIndex,
+                                SpanStyle(fontSize = Typography.headlineMedium.fontSize),
+                                0
+                            )
+                        )
                     else
-                        unsupportedElements.add(UnsupportedElement(currentIndex, SpanStyle(fontSize = TextUnit.Unspecified), 0))
+                        unsupportedElements.add(
+                            UnsupportedElement(
+                                currentIndex,
+                                SpanStyle(fontSize = TextUnit.Unspecified),
+                                0
+                            )
+                        )
                 }
 
                 XmlPullParser.END_TAG -> {
@@ -191,9 +273,11 @@ class HtmlConverter {
             eventType = parser.next()
         }
         for (item in unsupportedElements) {
-            styleList.add(AnnotatedString.Range<SpanStyle>(
-                item.style, item.start, item.end
-            ))
+            styleList.add(
+                AnnotatedString.Range<SpanStyle>(
+                    item.style, item.start, item.end
+                )
+            )
         }
 
         return styleList

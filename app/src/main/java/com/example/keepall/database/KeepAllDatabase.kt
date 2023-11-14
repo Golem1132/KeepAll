@@ -9,7 +9,7 @@ import com.example.keepall.data.Note
     entities = [
         Note::class
                ],
-    version = 7,
+    version = 8,
     exportSchema = true
 
 )
