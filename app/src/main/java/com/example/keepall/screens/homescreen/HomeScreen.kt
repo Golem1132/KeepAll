@@ -1,94 +1,124 @@
 package com.example.keepall.screens.homescreen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.keepall.components.AddNoteFAB
 import com.example.keepall.components.NoteSnippet
-import com.example.keepall.model.NavItem
-import com.example.keepall.model.NavItemEvent
+import com.example.keepall.internal.HomeScreenEvent
 import com.example.keepall.navigation.Screens
-import com.example.keepall.navigationbar.KeepAllNavigationBar
+import com.example.keepall.topbar.KeepAllTopAppBar
 
-val navItemsList = listOf(
-    NavItem(
-        Screens.HomeScreen.route,
-        Icons.Default.List,
-        NavItemEvent.NO_ACTION
-    ),
-    NavItem(
-        Screens.SearchScreen.route,
-        Icons.Default.Search,
-        NavItemEvent.NO_ACTION
-    ),
-)
-
-private val deletionModeItemsList = listOf(
-    NavItem(
-        "",
-        Icons.Default.Close,
-        NavItemEvent.EXIT
-    ),
-    NavItem(
-        "",
-        Icons.Default.Delete,
-        NavItemEvent.DELETE
-    )
-)
 
 enum class HomeScreenMode {
     PreviewMode,
     DeletionMode
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
+fun HomeScreen(navController: NavController) {
+    val viewModel: HomeViewModel = hiltViewModel()
     val homeScreenMode = viewModel.homeScreenMode.collectAsState()
     val notesList = viewModel.notesList.collectAsState()
-    Scaffold(bottomBar = {
-        KeepAllNavigationBar {
-            if (homeScreenMode.value == HomeScreenMode.PreviewMode)
-                TabRow(selectedTabIndex = 0) {
-                    navItemsList.forEach {
-                        Tab(selected = it.route == navController.currentDestination?.route,
-                            onClick = { navController.navigate(it.route) },
-                            icon = {
-                                Icon(imageVector = it.icon, contentDescription = "")
-                            })
-                    }
-                }
-            else
-                NavigationBar {
-                    deletionModeItemsList.forEach {
-                        NavigationBarItem(selected = it.route == navController.currentDestination?.route,
-                            onClick = {
-                            viewModel.performUiEvent(it.action)
-                            },
-                            icon = {
-                                Icon(imageVector = it.icon, contentDescription = "")
-                            })
-                    }
-                }
+    val checkedItems = viewModel.checkedItems.collectAsState()
+    val isVisible = rememberSaveable {
+        mutableStateOf(false)
+    }
+    val searchText = rememberSaveable {
+        mutableStateOf("")
+    }
+    Scaffold(topBar = {
+        AnimatedContent(
+            targetState = homeScreenMode.value,
+            label = "TopAppBarStateAnimation",
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut()
+            }
+        ) { state ->
+            when (state) {
+                HomeScreenMode.PreviewMode ->
+                    KeepAllTopAppBar(
+                        mainIcon = {
+                            Icon(
+                                modifier = Modifier.clickable {
+                                    isVisible.value = !isVisible.value
+                                },
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Expand search field"
+                            )
+                        },
+                        secondaryIcon = {
+                            Icon(
+                                modifier = Modifier.clickable {
+                                    isVisible.value = !isVisible.value
+                                },
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Collapse search field"
+                            )
+                        },
+                        title = {
+                            OutlinedTextField(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 10.dp),
+                                value = searchText.value,
+                                onValueChange = {
+                                    searchText.value = it
+                                    viewModel.search(searchText.value)
+                                },
+                                singleLine = true
+                            )
+                        },
+                        isTitleVisible = isVisible.value
+                    )
+
+                else ->
+                    KeepAllTopAppBar(
+                        exitIcon = {
+                            Icon(
+                                modifier = Modifier.clickable {
+                                    viewModel.performUiEvent(HomeScreenEvent.EXIT)
+                                },
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Exit deletion mode"
+                            )
+                        },
+                        deleteIcon = {
+                            Icon(
+                                modifier = Modifier.clickable {
+                                    viewModel.performUiEvent(HomeScreenEvent.DELETE)
+                                },
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Exit deletion mode"
+                            )
+                        },
+                        count = checkedItems.value.size
+                    )
+            }
         }
     },
         floatingActionButtonPosition = FabPosition.End,
@@ -105,22 +135,19 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
         ) {
             items(items = notesList.value) { noteListItem ->
                 NoteSnippet(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(5))
-                        .height(200.dp)
-                        .combinedClickable(
-                            onClick = {
-                                if (homeScreenMode.value == HomeScreenMode.PreviewMode)
-                                    navController.navigate("${Screens.NoteScreen.route}?id=${noteListItem.note.id}")
-                                else viewModel.addRemoveFromChecked(noteListItem.note.id)
-                            },
-                            onLongClick = {
-                                if (homeScreenMode.value == HomeScreenMode.PreviewMode) {
-                                    viewModel.addRemoveFromChecked(noteListItem.note.id)
-                                    viewModel.switchToMode(HomeScreenMode.DeletionMode)
-                                }
-                            }),
-                    item = noteListItem
+                    item = noteListItem,
+                    onLongClick = {
+                        if (homeScreenMode.value == HomeScreenMode.PreviewMode) {
+                            viewModel.addRemoveFromChecked(noteListItem.id)
+                            viewModel.switchToMode(HomeScreenMode.DeletionMode)
+                        }
+                    },
+                    onClick = {
+                        if (homeScreenMode.value == HomeScreenMode.PreviewMode)
+                            navController.navigate("${Screens.NoteScreen.route}?id=${noteListItem.id}")
+                        else viewModel.addRemoveFromChecked(noteListItem.id)
+                    },
+                    isMarked = checkedItems.value.contains(noteListItem.id)
                 )
             }
 

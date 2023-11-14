@@ -4,19 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
-import com.example.keepall.model.NavItemEvent
-import com.example.keepall.model.NoteListItem
+import com.example.keepall.internal.HomeScreenEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewModel() {
 
-    private val _notesList = MutableStateFlow<List<NoteListItem>>(emptyList())
+    private val _notesList = MutableStateFlow<List<Note>>(emptyList())
     val notesList = _notesList.asStateFlow()
+
+    private val _checkedItems = MutableStateFlow<List<Int>>(emptyList())
+    val checkedItems = _checkedItems.asStateFlow()
 
     private val _homeScreenMode = MutableStateFlow(HomeScreenMode.PreviewMode)
     val homeScreenMode = _homeScreenMode.asStateFlow()
@@ -25,72 +28,56 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
         viewModelScope.launch(Dispatchers.IO) {
             noteDao.getAllNotesAsFlow()
                 .collect { collected ->
-                    collected.map { note ->
-                        NoteListItem(
-                            note = note,
-                            checked = false
-                        )
-                    }.let { mapped ->
-                        _notesList.value = mapped.sortedByDescending {
-                            it.note.dateAdded
-                        }
+                    _notesList.value = collected.sortedByDescending {
+                        it.dateAdded
+                    }
+                }
+        }
+    }
+
+    fun search(query: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (query.isBlank())
+                _notesList.value = noteDao.getAllNotes().apply {
+                    sortedByDescending {
+                        it.dateAdded
+                    }
+                }
+            else
+                _notesList.value = noteDao.searchFor(query).apply {
+                    sortedByDescending {
+                        it.dateAdded
                     }
                 }
         }
     }
 
     fun addRemoveFromChecked(id: Int) {
-        viewModelScope.launch {
-            flow {
-                emit(id)
-            }.collect { emitedId ->
-                val tempList = _notesList.value.toMutableList()
-                _notesList.value.find { item ->
-                    item.note.id == emitedId
-                }?.let {
-                    tempList.remove(it)
-                    tempList.add(
-                        it.copy(
-                            note = it.note,
-                            checked = !it.checked
-                        )
-                    )
-                }
-                _notesList.value = tempList.sortedByDescending {
-                    it.note.dateAdded
-                }
-            }
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_checkedItems.value.contains(id))
+                _checkedItems.value = _checkedItems.value.minus(id)
+            else
+                _checkedItems.value = _checkedItems.value.plus(id)
         }
     }
 
     private fun uncheckEveryItem() {
-        val tempList = _notesList.value.toMutableList()
         viewModelScope.launch(Dispatchers.IO) {
-            for(item in tempList) {
-                if (item.checked) {
-                    tempList.remove(item)
-                    tempList.add(item.copy(
-                        note = item.note,
-                        checked = false
-                    ))
-                } else continue
-
-            }
-            _notesList.value = tempList.sortedByDescending {
-                it.note.dateAdded
-            }
+            _checkedItems.value = listOf()
         }
     }
 
-    fun performUiEvent(uiEvent: NavItemEvent) {
+    fun performUiEvent(uiEvent: HomeScreenEvent) {
         viewModelScope.launch {
             when (uiEvent) {
-                NavItemEvent.NO_ACTION -> {}
-                NavItemEvent.DELETE -> {
+                HomeScreenEvent.NO_ACTION -> {}
+                HomeScreenEvent.DELETE -> {
                     deleteCheckedItems()
+                    uncheckEveryItem()
                     _homeScreenMode.value = HomeScreenMode.PreviewMode
                 }
-                NavItemEvent.EXIT -> {
+
+                HomeScreenEvent.EXIT -> {
                     _homeScreenMode.value = HomeScreenMode.PreviewMode
                     uncheckEveryItem()
                 }
@@ -104,9 +91,12 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
 
     private fun deleteCheckedItems() {
         viewModelScope.launch(Dispatchers.IO) {
-            _notesList.value.forEach {
-                if (it.checked)
-                    noteDao.deleteNote(it.note)
+            for (id in _checkedItems.value) {
+                _notesList.value.find {
+                    it.id == id
+                }.let {
+                    noteDao.deleteNote(it ?: return@let)
+                }
             }
         }
     }

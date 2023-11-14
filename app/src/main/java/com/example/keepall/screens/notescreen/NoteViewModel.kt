@@ -1,10 +1,17 @@
 package com.example.keepall.screens.notescreen
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
+import com.example.keepall.spannedconverter.HtmlConverter
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,84 +26,107 @@ class NoteViewModel @Inject constructor(
 ) : ViewModel() {
     private val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
     var id: Int?
-    private val _textState = MutableStateFlow("")
+    private val _titleState = MutableStateFlow("")
+    val titleState = _titleState.asStateFlow()
+    private val _colorState = MutableStateFlow(Color.White)
+    val colorState = _colorState.asStateFlow()
+    private val _textState = MutableStateFlow(TextFieldValue())
     val textState = _textState.asStateFlow()
-    private val _canvasFilePath = MutableStateFlow<String>("")
-    val canvasFilePath = _canvasFilePath.asStateFlow()
-    private val _pickedPhotos = MutableStateFlow<Array<String>>(emptyArray())
-    val pickedPhotos = _pickedPhotos.asStateFlow()
+    private val _attachmentsList = MutableStateFlow<Array<String>>(emptyArray())
+    val attachmentsList = _attachmentsList.asStateFlow()
+
+    private val _currentStyle =
+        MutableStateFlow(AnnotatedString.Range<SpanStyle>(SpanStyle(), 0, 0))
+    val currentStyle = _currentStyle.asStateFlow()
+    val styleList = mutableListOf<AnnotatedString.Range<SpanStyle>>()
+    private val htmlConverter = HtmlConverter()
+    private val _isLoaded = MutableStateFlow<Boolean>(false)
+    val isLoaded = _isLoaded.asStateFlow()
 
     init {
         id = savedStateHandle.get<Int>("id")
         viewModelScope.launch(Dispatchers.IO) {
             if (id != null && id!! > 0) {
                 noteDao.getNote(id!!).let {
-                    _textState.value = it.textContent
-                    _canvasFilePath.value = it.canvas ?: ""
-                    _pickedPhotos.value = jsonParser.fromJson(it.photos ?: "") ?: arrayOf()
+                    _titleState.value = it.title
+                    _textState.value = TextFieldValue(
+                        htmlConverter.toAnnotatedString(it.textContent).text
+                    )
+                    _colorState.value = Color(it.color)
+                    _attachmentsList.value = jsonParser.fromJson(it.attachments) ?: emptyArray()
+                    styleList.addAll(htmlConverter.getStyles(it.textContent))
                 }
             }
+        }.invokeOnCompletion {
+            _isLoaded.value = true
         }
     }
 
-
-    fun addPainting(path: String?) {
-        viewModelScope.launch {
-            flow {
-                emit(path)
-            }.collect {
-                _canvasFilePath.value = it ?: ""
-            }
-        }
+    fun getText(): String {
+        return _textState.value.text
     }
 
-
-    fun addNewPhoto(photoPath: String) {
-        viewModelScope.launch {
-            flow {
-                emit(photoPath)
-            }.collect {
-                _pickedPhotos.value = pickedPhotos.value.plus(it)
-            }
-        }
-    }
-
-    fun addNewPhoto(photosPath: Array<String>) {
-        viewModelScope.launch {
-            flow {
-                emit(photosPath)
-            }.collect { paths ->
-                _pickedPhotos.value = paths
-            }
-        }
-    }
-
-    fun addNewNote(textContent: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (id != null && id!! > 0)
-                noteDao.updateNote(
-                    Note(
-                        id = id!!,
-                        textContent = textContent,
-                        canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value),
-                        dateAdded = Date()
-                    )
-                )
-            else
-                noteDao.insertNote(
-                    Note(
-                        textContent = textContent,
-                        canvas = _canvasFilePath.value,
-                        photos = jsonParser.toJson(pickedPhotos.value),
-                        dateAdded = Date()
-                    )
-                )
-        }
-    }
-
-    fun updateTextState(newValue: String) {
+    fun updateTextState(newValue: TextFieldValue) {
         _textState.value = newValue
+    }
+
+    fun updateTitleState(newValue: String) {
+        _titleState.value = newValue
+    }
+
+    fun setColor(pickedColor: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _colorState.emit(Color(pickedColor))
+        }
+    }
+
+    fun updateAttachmentsList(path: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!path.isNullOrEmpty()) {
+                val newList = _attachmentsList.value.plus(path)
+                _attachmentsList.value = newList
+            }
+        }
+    }
+
+    fun updateAttachmentsList(paths: Array<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            var newList = _attachmentsList.value
+            paths.forEach {
+                newList = newList.plus(it)
+            }
+            _attachmentsList.value = newList
+        }
+    }
+
+    fun updateCurrentStyle(updatedStyle: AnnotatedString.Range<SpanStyle>) {
+        _currentStyle.value = updatedStyle
+    }
+
+    fun saveNote(doAfter: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            noteDao.insertNote(
+                Note(
+                    id = if (id == null || id == -1) 0 else id!!,
+                    title = _titleState.value,
+                    textContent = htmlConverter.convertToHtml(
+                        buildAnnotatedString {
+                            for (index in 0 until styleList.size) {
+                                addStyle(
+                                    styleList[index].item,
+                                    styleList[index].start,
+                                    styleList[index].end
+                                )
+                            }
+                            append(textState.value.text)
+                        }),
+                    color = _colorState.value.toArgb(),
+                    attachments = jsonParser.toJson(_attachmentsList.value),
+                    dateAdded = Date()
+                )
+            )
+        }
+        doAfter()
     }
 
 }

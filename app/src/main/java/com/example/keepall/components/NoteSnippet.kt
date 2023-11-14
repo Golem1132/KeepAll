@@ -1,101 +1,78 @@
 package com.example.keepall.components
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.keepall.R
+import androidx.compose.ui.unit.sp
 import com.example.keepall.data.Note
-import com.example.keepall.model.NoteListItem
-import com.example.keepall.ui.theme.Yellow20
-import com.example.keepall.utils.fromStringToList
+import com.example.keepall.spannedconverter.HtmlConverter
 
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteSnippet(
-    modifier: Modifier,
-    item: NoteListItem
+    item: Note,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    isMarked: Boolean
 ) {
-    val canvasCount = if (!item.note.canvas.isNullOrBlank()) 1 else 0
-    val photosCount = fromStringToList(item.note.photos).size
-
-
-    Scaffold(modifier = modifier
-        .then(
-            Modifier.border(
-                width = 3.dp,
-                color = if (item.checked)
-                    Color.Blue
-                else Color.Transparent
+    val htmlConverter = HtmlConverter()
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                if (!isMarked)
+                    1.dp
+                else
+                    3.dp,
+                if (!isMarked)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.tertiaryContainer,
+                RoundedCornerShape(5)
             )
-        ),
-        containerColor = Yellow20,
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 0.dp),
-        bottomBar = {
-            NoteBottomBar(canvasCount, photosCount)
-        }) {
-        Text(
-            modifier = Modifier
-                .padding(it),
-            softWrap = true,
-            text = item.note.textContent,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-fun NoteSnippet(
-    modifier: Modifier,
-    item: Note
-) {
-    val canvasCount = if (!item.canvas.isNullOrBlank()) 1 else 0
-    val photosCount = fromStringToList(item.photos).size
-
-
-    Scaffold(modifier = modifier,
-        containerColor = Yellow20,
-        contentWindowInsets = WindowInsets(10.dp, 10.dp, 10.dp, 0.dp),
-        bottomBar = {
-            NoteBottomBar(canvasCount, photosCount)
-        }) {
-        Text(
-            modifier = Modifier
-                .padding(it),
-            softWrap = true,
-            text = item.textContent,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-
-@Composable
-fun NoteBottomBar(canvasCount: Int, photosCount: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+            .clip(RoundedCornerShape(5))
+            .combinedClickable(
+                onLongClick = onLongClick,
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(5),
+        color = Color(item.color)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = R.drawable.palette_24px),
-                contentDescription = "canvas count"
+        Column(modifier = Modifier.heightIn(100.dp, 250.dp)) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                text = item.title,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
             )
-            Text(text = canvasCount.toString())
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(id = R.drawable.image_24px),
-                contentDescription = "photos count"
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                overflow = TextOverflow.Ellipsis,
+                text = htmlConverter.toAnnotatedString(item.textContent)
             )
-            Text(text = photosCount.toString())
+
         }
     }
 }
