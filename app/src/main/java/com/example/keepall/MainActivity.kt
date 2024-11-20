@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.example.keepall.navigation.Navigation
 import com.example.keepall.ui.theme.KeepAllTheme
-import dagger.hilt.android.AndroidEntryPoint
 
 private val permissions = arrayOf(
     android.Manifest.permission.CAMERA,
@@ -21,7 +20,6 @@ private val permissions = arrayOf(
     android.Manifest.permission.READ_MEDIA_IMAGES
 )
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

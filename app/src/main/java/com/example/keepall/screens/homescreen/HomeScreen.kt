@@ -1,38 +1,28 @@
 package com.example.keepall.screens.homescreen
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.keepall.components.AddNoteFAB
 import com.example.keepall.components.NoteSnippet
-import com.example.keepall.internal.HomeScreenEvent
 import com.example.keepall.navigation.Screens
-import com.example.keepall.topbar.KeepAllTopAppBar
+import com.example.keepall.topbar.KeepAllTTopBar
+import com.example.keepall.topbar.KeepAllTopBarEdit
+import com.example.keepall.topbar.rememberKeepAllTopBarState
 
 
 enum class HomeScreenMode {
@@ -42,89 +32,37 @@ enum class HomeScreenMode {
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val viewModel: HomeViewModel = hiltViewModel()
+    val viewModel: HomeViewModel = viewModel()
     val homeScreenMode = viewModel.homeScreenMode.collectAsState()
     val notesList = viewModel.notesList.collectAsState()
     val checkedItems = viewModel.checkedItems.collectAsState()
-    val isVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val searchText = rememberSaveable {
-        mutableStateOf("")
-    }
+    val keepAllTopBarState = rememberKeepAllTopBarState()
     Scaffold(topBar = {
-        AnimatedContent(
-            targetState = homeScreenMode.value,
-            label = "TopAppBarStateAnimation",
-            transitionSpec = {
-                fadeIn() togetherWith fadeOut()
-            }
-        ) { state ->
-            when (state) {
-                HomeScreenMode.PreviewMode ->
-                    KeepAllTopAppBar(
-                        mainIcon = {
-                            Icon(
-                                modifier = Modifier.clickable {
-                                    isVisible.value = !isVisible.value
-                                },
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Expand search field"
-                            )
-                        },
-                        secondaryIcon = {
-                            Icon(
-                                modifier = Modifier.clickable {
-                                    isVisible.value = !isVisible.value
-                                },
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Collapse search field"
-                            )
-                        },
-                        title = {
-                            OutlinedTextField(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(horizontal = 10.dp),
-                                value = searchText.value,
-                                onValueChange = {
-                                    searchText.value = it
-                                    viewModel.search(searchText.value)
-                                },
-                                singleLine = true
-                            )
-                        },
-                        isTitleVisible = isVisible.value
-                    )
+        if (homeScreenMode.value == HomeScreenMode.PreviewMode)
+            KeepAllTTopBar(state = keepAllTopBarState,
+                onKeyboardAction = { query ->
+                    TODO("Search from viewmodel")
+                },
+                onActionClick = {
+                    TODO("Go to profile/config")
+                })
+        else KeepAllTopBarEdit(
+            count = checkedItems.value.size,
+            onPinClick = { /*TODO*/ },
+            onPaletteClick = { /*TODO*/ },
+            onAlertClick = { /*TODO*/ },
+            onDeleteClick = { /*TODO*/ }) {
 
-                else ->
-                    KeepAllTopAppBar(
-                        exitIcon = {
-                            Icon(
-                                modifier = Modifier.clickable {
-                                    viewModel.performUiEvent(HomeScreenEvent.EXIT)
-                                },
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Exit deletion mode"
-                            )
-                        },
-                        deleteIcon = {
-                            Icon(
-                                modifier = Modifier.clickable {
-                                    viewModel.performUiEvent(HomeScreenEvent.DELETE)
-                                },
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Exit deletion mode"
-                            )
-                        },
-                        count = checkedItems.value.size
-                    )
-            }
         }
     },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (homeScreenMode.value == HomeScreenMode.PreviewMode)
-                AddNoteFAB(navController = navController)
+                FloatingActionButton(onClick = {
+                    navController.navigate(route = Screens.NoteScreen.route)
+                }) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
+                }
         }) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),

@@ -5,15 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
 import com.example.keepall.internal.HomeScreenEvent
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewModel() {
+class HomeViewModel (
+    /*private val noteDao: NoteDao*/) : ViewModel() {
 
     private val _notesList = MutableStateFlow<List<Note>>(emptyList())
     val notesList = _notesList.asStateFlow()
@@ -25,17 +23,17 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
     val homeScreenMode = _homeScreenMode.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+/*        viewModelScope.launch(Dispatchers.IO) {
             noteDao.getAllNotesAsFlow()
                 .collect { collected ->
                     _notesList.value = collected.sortedByDescending {
                         it.dateAdded
                     }
                 }
-        }
+        }*/
     }
 
-    fun search(query: String) {
+/*    fun search(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (query.isBlank())
                 _notesList.value = noteDao.getAllNotes().apply {
@@ -50,7 +48,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
                     }
                 }
         }
-    }
+    }*/
 
     fun addRemoveFromChecked(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -95,7 +93,7 @@ class HomeViewModel @Inject constructor(private val noteDao: NoteDao) : ViewMode
                 _notesList.value.find {
                     it.id == id
                 }.let {
-                    noteDao.deleteNote(it ?: return@let)
+//                    noteDao.deleteNote(it ?: return@let)
                 }
             }
         }

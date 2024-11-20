@@ -36,12 +36,10 @@ import com.example.keepall.components.CheckableImage
 import com.example.keepall.constants.PICKED_PHOTOS
 import com.example.keepall.topbar.KeepAllTopAppBar
 import com.example.keepall.ui.theme.KeepAllTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-@AndroidEntryPoint
 class GalleryActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {

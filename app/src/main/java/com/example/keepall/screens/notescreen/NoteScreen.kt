@@ -73,7 +73,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.keepall.R
@@ -98,7 +98,7 @@ import java.io.File
 fun NoteScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val localContext = LocalContext.current
-    val viewModel = hiltViewModel<NoteViewModel>()
+    val viewModel:NoteViewModel = viewModel()
     val bottomBarState = remember {
         mutableStateOf(BottomBarMode.NOTE_OPERATIONS)
     }

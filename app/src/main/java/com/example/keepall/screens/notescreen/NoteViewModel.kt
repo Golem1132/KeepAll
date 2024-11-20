@@ -13,15 +13,12 @@ import com.example.keepall.data.Note
 import com.example.keepall.database.NoteDao
 import com.example.keepall.spannedconverter.HtmlConverter
 import com.squareup.moshi.Moshi
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
-import javax.inject.Inject
 
-@HiltViewModel
-class NoteViewModel @Inject constructor(
+class NoteViewModel (
     private val noteDao: NoteDao, savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val jsonParser = Moshi.Builder().build().adapter(Array<String>::class.java)
