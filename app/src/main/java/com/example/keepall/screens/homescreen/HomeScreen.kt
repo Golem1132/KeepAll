@@ -23,6 +23,7 @@ import com.example.keepall.navigation.Screens
 import com.example.keepall.topbar.KeepAllTTopBar
 import com.example.keepall.topbar.KeepAllTopBarEdit
 import com.example.keepall.topbar.rememberKeepAllTopBarState
+import org.koin.androidx.compose.koinViewModel
 
 
 enum class HomeScreenMode {
@@ -32,7 +33,7 @@ enum class HomeScreenMode {
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val viewModel: HomeViewModel = viewModel()
+    val viewModel: HomeViewModel = koinViewModel()
     val homeScreenMode = viewModel.homeScreenMode.collectAsState()
     val notesList = viewModel.notesList.collectAsState()
     val checkedItems = viewModel.checkedItems.collectAsState()

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel (
-    /*private val noteDao: NoteDao*/) : ViewModel() {
+    private val noteDao: NoteDao) : ViewModel() {
 
     private val _notesList = MutableStateFlow<List<Note>>(emptyList())
     val notesList = _notesList.asStateFlow()
@@ -23,17 +23,17 @@ class HomeViewModel (
     val homeScreenMode = _homeScreenMode.asStateFlow()
 
     init {
-/*        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
             noteDao.getAllNotesAsFlow()
                 .collect { collected ->
                     _notesList.value = collected.sortedByDescending {
                         it.dateAdded
                     }
                 }
-        }*/
+        }
     }
 
-/*    fun search(query: String) {
+    fun search(query: String) {
         viewModelScope.launch(Dispatchers.IO) {
             if (query.isBlank())
                 _notesList.value = noteDao.getAllNotes().apply {
@@ -48,7 +48,7 @@ class HomeViewModel (
                     }
                 }
         }
-    }*/
+    }
 
     fun addRemoveFromChecked(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -93,7 +93,7 @@ class HomeViewModel (
                 _notesList.value.find {
                     it.id == id
                 }.let {
-//                    noteDao.deleteNote(it ?: return@let)
+                    noteDao.deleteNote(it ?: return@let)
                 }
             }
         }

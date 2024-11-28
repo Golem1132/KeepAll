@@ -91,6 +91,7 @@ import com.example.keepall.screens.gallery.GalleryActivity
 import com.example.keepall.ui.theme.Typography
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +99,7 @@ import java.io.File
 fun NoteScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val localContext = LocalContext.current
-    val viewModel:NoteViewModel = viewModel()
+    val viewModel:NoteViewModel = koinViewModel()
     val bottomBarState = remember {
         mutableStateOf(BottomBarMode.NOTE_OPERATIONS)
     }
