@@ -22,12 +22,6 @@ fun NoteModificationMenu(
     paletteIconAction: () -> Unit,
     textIconAction: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Max),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
         Icon(
             imageVector = Icons.Outlined.Add,
             contentDescription = "Add attachments",
@@ -53,5 +47,4 @@ fun NoteModificationMenu(
                 }
 
         )
-    }
 }
