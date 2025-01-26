@@ -18,10 +18,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.TextUnit
 import com.example.keepall.R
+import com.example.keepall.model.NoteTextStyle
 import com.example.keepall.ui.theme.Typography
 
 @Composable
 fun TextModificationMenu(
+    state: NoteTextStyle,
     h1: () -> Unit,
     h2: () -> Unit,
     normalText: () -> Unit,
@@ -29,8 +31,7 @@ fun TextModificationMenu(
     italic: () -> Unit,
     underline: () -> Unit,
     clear: () -> Unit,
-    exit: () -> Unit,
-    currentStyle: SpanStyle
+    exit: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -41,7 +42,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { h1() }
                 .then(
-                    if (currentStyle.fontSize == Typography.headlineLarge.fontSize)
+                    if (state.fontSize == 1.25f)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),
@@ -50,7 +51,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { h2() }
                 .then(
-                    if (currentStyle.fontSize == Typography.headlineMedium.fontSize)
+                    if (state.fontSize == 1.15f)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),
@@ -60,7 +61,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { normalText() }
                 .then(
-                    if (currentStyle.fontSize == TextUnit.Unspecified)
+                    if (state.fontSize == 1f)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),
@@ -71,7 +72,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { bold() }
                 .then(
-                    if (currentStyle.fontWeight != null)
+                    if (state.bold)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),
@@ -81,7 +82,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { italic() }
                 .then(
-                    if (currentStyle.fontStyle != null)
+                    if (state.italic)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),
@@ -91,7 +92,7 @@ fun TextModificationMenu(
         Icon(
             modifier = Modifier.clickable { underline() }
                 .then(
-                    if (currentStyle.textDecoration != null)
+                    if (state.underline)
                         Modifier.background(color = Color.LightGray)
                     else Modifier
                 ),

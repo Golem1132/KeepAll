@@ -172,7 +172,7 @@ fun NoteScreen(navController: NavController) {
                 bottomBar = {
                     BottomAppBar(
                         actions = {
-                            AnimatedContent(
+                            /*AnimatedContent(
                                 targetState = bottomBarState.value,
                                 label = "BottomBarAnimatedContent",
                                 transitionSpec = {
@@ -303,7 +303,7 @@ fun NoteScreen(navController: NavController) {
                                             bottomBarState.value = BottomBarMode.NOTE_OPERATIONS
                                         },
                                         currentStyle = currentStyle.value.item)
-                            }
+                            }*/
                         },
                         floatingActionButton = {
 
