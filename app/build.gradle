@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'com.google.devtools.ksp'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -92,4 +93,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     implementation 'org.jetbrains.kotlinx:kotlinx-html:0.11.0'
+
+    //Serializer
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 }

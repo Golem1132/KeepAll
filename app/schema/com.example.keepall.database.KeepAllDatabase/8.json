@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "845cc7bb3d7e8f60bda511cc51a2e54a",
+    "identityHash": "7c0345877a7c144baa51d92b24c3ed22",
     "entities": [
       {
         "tableName": "notes_tbl",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL DEFAULT 'No title', `textContent` TEXT NOT NULL DEFAULT 'Nothing here', `color` INTEGER NOT NULL, `attachments` TEXT NOT NULL, `dateAdded` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL DEFAULT 'No title', `textContent` TEXT NOT NULL DEFAULT 'Nothing here', `color` INTEGER NOT NULL, `style` TEXT NOT NULL, `attachments` TEXT NOT NULL, `dateAdded` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -35,6 +35,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "style",
+            "columnName": "style",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "attachments",
             "columnName": "attachments",
             "affinity": "TEXT",
@@ -60,7 +66,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '845cc7bb3d7e8f60bda511cc51a2e54a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7c0345877a7c144baa51d92b24c3ed22')"
     ]
   }
 }

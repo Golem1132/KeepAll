@@ -119,7 +119,8 @@ class NoteViewModel (
                         }),
                     color = _colorState.value.toArgb(),
                     attachments = jsonParser.toJson(_attachmentsList.value),
-                    dateAdded = Date()
+                    dateAdded = Date(),
+                    style = emptyList()
                 )
             )
         }
